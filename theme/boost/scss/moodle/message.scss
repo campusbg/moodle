@@ -474,6 +474,7 @@
                 }
 
                 .message {
+                    @include make-row(0);
 
                     .deletemessagecheckbox {
                         display: none;
@@ -506,11 +507,11 @@
                     }
 
                     .content.left {
-                        margin-left: auto;
+                        float: left;
                     }
 
                     .content.right {
-                        margin-right: auto;
+                        float: right;
                     }
                 }
             }

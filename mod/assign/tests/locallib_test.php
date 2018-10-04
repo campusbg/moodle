@@ -1679,7 +1679,7 @@ class mod_assign_locallib_testcase extends advanced_testcase {
 
         $events = $sink->get_events();
         $event = reset($events);
-        $this->assertInstanceOf('\core\event\notification_sent', $event);
+        $this->assertInstanceOf('\core\event\message_sent', $event);
         $this->assertEquals($assign->get_course()->id, $event->other['courseid']);
         $sink->close();
     }
@@ -1719,11 +1719,6 @@ class mod_assign_locallib_testcase extends advanced_testcase {
 
         $this->setUser($teacher);
         $this->assertEquals(true, $assign->can_grade());
-
-        // Test the viewgrades capability for other users.
-        $this->setUser();
-        $this->assertTrue($assign->can_grade($teacher->id));
-        $this->assertFalse($assign->can_grade($student->id));
 
         // Test the viewgrades capability - without mod/assign:grade.
         $this->setUser($student);

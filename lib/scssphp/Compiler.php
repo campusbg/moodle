@@ -2,7 +2,7 @@
 /**
  * SCSSPHP
  *
- * @copyright 2012-2018 Leaf Corcoran
+ * @copyright 2012-2017 Leaf Corcoran
  *
  * @license http://opensource.org/licenses/MIT MIT
  *
@@ -18,7 +18,6 @@ use Leafo\ScssPhp\Compiler\Environment;
 use Leafo\ScssPhp\Exception\CompilerException;
 use Leafo\ScssPhp\Formatter\OutputBlock;
 use Leafo\ScssPhp\Node;
-use Leafo\ScssPhp\SourceMap\SourceMapGenerator;
 use Leafo\ScssPhp\Type;
 use Leafo\ScssPhp\Parser;
 use Leafo\ScssPhp\Util;
@@ -64,10 +63,6 @@ class Compiler
     const WITH_MEDIA    = 2;
     const WITH_SUPPORTS = 4;
     const WITH_ALL      = 7;
-
-    const SOURCE_MAP_NONE   = 0;
-    const SOURCE_MAP_INLINE = 1;
-    const SOURCE_MAP_FILE   = 2;
 
     /**
      * @var array
@@ -125,20 +120,11 @@ class Compiler
     protected $encoding = null;
     protected $lineNumberStyle = null;
 
-    protected $sourceMap = self::SOURCE_MAP_NONE;
-    protected $sourceMapOptions = [];
-
-    /**
-     * @var string|\Leafo\ScssPhp\Formatter
-     */
     protected $formatter = 'Leafo\ScssPhp\Formatter\Nested';
 
     protected $rootEnv;
     protected $rootBlock;
 
-    /**
-     * @var \Leafo\ScssPhp\Compiler\Environment
-     */
     protected $env;
     protected $scope;
     protected $storeEnv;
@@ -179,6 +165,9 @@ class Compiler
      */
     public function compile($code, $path = null)
     {
+        $locale = setlocale(LC_NUMERIC, 0);
+        setlocale(LC_NUMERIC, 'C');
+
         $this->indentLevel    = -1;
         $this->commentsSeen   = [];
         $this->extends        = [];
@@ -205,35 +194,9 @@ class Compiler
         $this->compileRoot($tree);
         $this->popEnv();
 
-        $sourceMapGenerator = null;
+        $out = $this->formatter->format($this->scope);
 
-        if ($this->sourceMap) {
-            if (is_object($this->sourceMap) && $this->sourceMap instanceof SourceMapGenerator) {
-                $sourceMapGenerator = $this->sourceMap;
-                $this->sourceMap = self::SOURCE_MAP_FILE;
-            } elseif ($this->sourceMap !== self::SOURCE_MAP_NONE) {
-                $sourceMapGenerator = new SourceMapGenerator($this->sourceMapOptions);
-            }
-        }
-
-        $out = $this->formatter->format($this->scope, $sourceMapGenerator);
-
-        if (! empty($out) && $this->sourceMap && $this->sourceMap !== self::SOURCE_MAP_NONE) {
-            $sourceMap    = $sourceMapGenerator->generateJson();
-            $sourceMapUrl = null;
-
-            switch ($this->sourceMap) {
-                case self::SOURCE_MAP_INLINE:
-                    $sourceMapUrl = sprintf('data:application/json,%s', Util::encodeURIComponent($sourceMap));
-                    break;
-
-                case self::SOURCE_MAP_FILE:
-                    $sourceMapUrl = $sourceMapGenerator->saveMap($sourceMap);
-                    break;
-            }
-
-            $out .= sprintf('/*# sourceMappingURL=%s */', $sourceMapUrl);
-        }
+        setlocale(LC_NUMERIC, $locale);
 
         return $out;
     }
@@ -310,15 +273,12 @@ class Compiler
     protected function makeOutputBlock($type, $selectors = null)
     {
         $out = new OutputBlock;
-        $out->type         = $type;
-        $out->lines        = [];
-        $out->children     = [];
-        $out->parent       = $this->scope;
-        $out->selectors    = $selectors;
-        $out->depth        = $this->env->depth;
-        $out->sourceName   = $this->env->block->sourceName;
-        $out->sourceLine   = $this->env->block->sourceLine;
-        $out->sourceColumn = $this->env->block->sourceColumn;
+        $out->type      = $type;
+        $out->lines     = [];
+        $out->children  = [];
+        $out->parent    = $this->scope;
+        $out->selectors = $selectors;
+        $out->depth     = $this->env->depth;
 
         return $out;
     }
@@ -701,7 +661,6 @@ class Compiler
 
             if ($needsWrap) {
                 $wrapped = new Block;
-                $wrapped->sourceName   = $media->sourceName;
                 $wrapped->sourceIndex  = $media->sourceIndex;
                 $wrapped->sourceLine   = $media->sourceLine;
                 $wrapped->sourceColumn = $media->sourceColumn;
@@ -775,7 +734,6 @@ class Compiler
         // wrap inline selector
         if ($block->selector) {
             $wrapped = new Block;
-            $wrapped->sourceName   = $block->sourceName;
             $wrapped->sourceIndex  = $block->sourceIndex;
             $wrapped->sourceLine   = $block->sourceLine;
             $wrapped->sourceColumn = $block->sourceColumn;
@@ -832,7 +790,6 @@ class Compiler
             }
 
             $b = new Block;
-            $b->sourceName   = $e->block->sourceName;
             $b->sourceIndex  = $e->block->sourceIndex;
             $b->sourceLine   = $e->block->sourceLine;
             $b->sourceColumn = $e->block->sourceColumn;
@@ -1224,7 +1181,7 @@ class Compiler
     /**
      * Compile selector to string; self(&) should have been replaced by now
      *
-     * @param string|array $selector
+     * @param array $selector
      *
      * @return string
      */
@@ -1246,7 +1203,7 @@ class Compiler
     /**
      * Compile selector part
      *
-     * @param array $piece
+     * @param arary $piece
      *
      * @return string
      */
@@ -1772,18 +1729,9 @@ class Compiler
                 list(, $for) = $child;
 
                 $start = $this->reduce($for->start, true);
-                $end   = $this->reduce($for->end, true);
-
-                if (! ($start[2] == $end[2] || $end->unitless())) {
-                    $this->throwError('Incompatible units: "%s" and "%s".', $start->unitStr(), $end->unitStr());
-
-                    break;
-                }
-
-                $unit  = $start[2];
                 $start = $start[1];
-                $end   = $end[1];
-
+                $end = $this->reduce($for->end, true);
+                $end = $end[1];
                 $d = $start < $end ? 1 : -1;
 
                 for (;;) {
@@ -1793,7 +1741,7 @@ class Compiler
                         break;
                     }
 
-                    $this->set($for->var, new Node\Number($start, $unit));
+                    $this->set($for->var, new Node\Number($start, ''));
                     $start += $d;
 
                     $ret = $this->compileChildren($for->children, $out);
@@ -1978,7 +1926,7 @@ class Compiler
      *
      * @param string $value
      *
-     * @return boolean
+     * @return bool
      */
     protected function isImmediateRelationshipCombinator($value)
     {
@@ -2015,7 +1963,7 @@ class Compiler
      * @param array   $value
      * @param boolean $inExp
      *
-     * @return array|\Leafo\ScssPhp\Node\Number
+     * @return array
      */
     protected function reduce($value, $inExp = false)
     {
@@ -2290,7 +2238,7 @@ class Compiler
      * @param array $left
      * @param array $right
      *
-     * @return \Leafo\ScssPhp\Node\Number
+     * @return array
      */
     protected function opAddNumberNumber($left, $right)
     {
@@ -2303,7 +2251,7 @@ class Compiler
      * @param array $left
      * @param array $right
      *
-     * @return \Leafo\ScssPhp\Node\Number
+     * @return array
      */
     protected function opMulNumberNumber($left, $right)
     {
@@ -2316,7 +2264,7 @@ class Compiler
      * @param array $left
      * @param array $right
      *
-     * @return \Leafo\ScssPhp\Node\Number
+     * @return array
      */
     protected function opSubNumberNumber($left, $right)
     {
@@ -2329,7 +2277,7 @@ class Compiler
      * @param array $left
      * @param array $right
      *
-     * @return array|\Leafo\ScssPhp\Node\Number
+     * @return array
      */
     protected function opDivNumberNumber($left, $right)
     {
@@ -2346,7 +2294,7 @@ class Compiler
      * @param array $left
      * @param array $right
      *
-     * @return \Leafo\ScssPhp\Node\Number
+     * @return array
      */
     protected function opModNumberNumber($left, $right)
     {
@@ -2632,7 +2580,7 @@ class Compiler
      * @param array $left
      * @param array $right
      *
-     * @return \Leafo\ScssPhp\Node\Number
+     * @return array
      */
     protected function opCmpNumberNumber($left, $right)
     {
@@ -3357,30 +3305,6 @@ class Compiler
     }
 
     /**
-     * Enable/disable source maps
-     *
-     * @api
-     *
-     * @param integer $sourceMap
-     */
-    public function setSourceMap($sourceMap)
-    {
-        $this->sourceMap = $sourceMap;
-    }
-
-    /**
-     * Set source map options
-     *
-     * @api
-     *
-     * @param array $sourceMapOptions
-     */
-    public function setSourceMapOptions($sourceMapOptions)
-    {
-        $this->sourceMapOptions = $sourceMapOptions;
-    }
-
-    /**
      * Register function
      *
      * @api
@@ -3581,7 +3505,7 @@ class Compiler
      * Call SCSS @function
      *
      * @param string $name
-     * @param array  $argValues
+     * @param array  $args
      * @param array  $returnValue
      *
      * @return boolean Returns true if returnValue is set; otherwise, false
@@ -3853,7 +3777,7 @@ class Compiler
      *
      * @param mixed $value
      *
-     * @return array|\Leafo\ScssPhp\Node\Number
+     * @return array
      */
     private function coerceValue($value)
     {
@@ -3926,8 +3850,7 @@ class Compiler
     /**
      * Coerce something to list
      *
-     * @param array  $item
-     * @param string $delim
+     * @param array $item
      *
      * @return array
      */
@@ -4749,32 +4672,36 @@ class Compiler
     protected function libRound($args)
     {
         $num = $args[0];
+        $num[1] = round($num[1]);
 
-        return new Node\Number(round($num[1]), $num[2]);
+        return $num;
     }
 
     protected static $libFloor = ['value'];
     protected function libFloor($args)
     {
         $num = $args[0];
+        $num[1] = floor($num[1]);
 
-        return new Node\Number(floor($num[1]), $num[2]);
+        return $num;
     }
 
     protected static $libCeil = ['value'];
     protected function libCeil($args)
     {
         $num = $args[0];
+        $num[1] = ceil($num[1]);
 
-        return new Node\Number(ceil($num[1]), $num[2]);
+        return $num;
     }
 
     protected static $libAbs = ['value'];
     protected function libAbs($args)
     {
         $num = $args[0];
+        $num[1] = abs($num[1]);
 
-        return new Node\Number(abs($num[1]), $num[2]);
+        return $num;
     }
 
     protected function libMin($args)
@@ -5202,7 +5129,7 @@ class Compiler
         $string = $this->coerceString($args[0]);
         $stringContent = $this->compileStringContent($string);
 
-        $string[2] = [function_exists('mb_strtolower') ? mb_strtolower($stringContent) : strtolower($stringContent)];
+        $string[2] = [mb_strtolower($stringContent)];
 
         return $string;
     }
@@ -5213,7 +5140,7 @@ class Compiler
         $string = $this->coerceString($args[0]);
         $stringContent = $this->compileStringContent($string);
 
-        $string[2] = [function_exists('mb_strtoupper') ? mb_strtoupper($stringContent) : strtoupper($stringContent)];
+        $string[2] = [mb_strtoupper($stringContent)];
 
         return $string;
     }
@@ -5283,8 +5210,6 @@ class Compiler
      * Workaround IE7's content counter bug.
      *
      * @param array $args
-     *
-     * @return array
      */
     protected function libCounter($args)
     {

@@ -1226,9 +1226,10 @@ function glossary_print_entry_icons($course, $cm, $glossary, $entry, $mode='',$h
 
     $context = context_module::instance($cm->id);
 
-    $output = false;   // To decide if we must really return text in "return". Activate when needed only!
+    $output = false;   //To decide if we must really return text in "return". Activate when needed only!
     $importedentry = ($entry->sourceglossaryid == $glossary->id);
     $ismainglossary = $glossary->mainglossary;
+
 
     $return = '<span class="commands">';
     // Differentiate links for each entry.
@@ -1238,15 +1239,6 @@ function glossary_print_entry_icons($course, $cm, $glossary, $entry, $mode='',$h
         $output = true;
         $return .= html_writer::tag('span', get_string('entryishidden','glossary'),
             array('class' => 'glossary-hidden-note'));
-    }
-
-    if ($entry->approved || has_capability('mod/glossary:approve', $context)) {
-        $output = true;
-        $return .= \html_writer::link(
-            new \moodle_url('/mod/glossary/showentry.php', ['eid' => $entry->id]),
-            $OUTPUT->pix_icon('fp/link', get_string('entrylink', 'glossary', $altsuffix), 'theme'),
-            ['title' => get_string('entrylink', 'glossary', $altsuffix), 'class' => 'icon']
-        );
     }
 
     if (has_capability('mod/glossary:approve', $context) && !$glossary->defaultapproval && $entry->approved) {
@@ -3820,10 +3812,10 @@ function glossary_get_entries_by_search($glossary, $context, $query, $fullsearch
                                         $options = array()) {
     global $DB, $USER;
 
-    // Clean terms.
+    // Remove too little terms.
     $terms = explode(' ', $query);
     foreach ($terms as $key => $term) {
-        if (strlen(trim($term, '+-')) < 1) {
+        if (strlen(trim($term, '+-')) < 2) {
             unset($terms[$key]);
         }
     }
@@ -4226,28 +4218,15 @@ function mod_glossary_get_fontawesome_icon_map() {
  *
  * @param calendar_event $event
  * @param \core_calendar\action_factory $factory
- * @param int $userid User id to use for all capability checks, etc. Set to 0 for current user (default).
  * @return \core_calendar\local\event\entities\action_interface|null
  */
 function mod_glossary_core_calendar_provide_event_action(calendar_event $event,
-                                                         \core_calendar\action_factory $factory,
-                                                         int $userid = 0) {
-    global $USER;
-
-    if (!$userid) {
-        $userid = $USER->id;
-    }
-
-    $cm = get_fast_modinfo($event->courseid, $userid)->instances['glossary'][$event->instance];
-
-    if (!$cm->uservisible) {
-        // The module is not visible to the user for any reason.
-        return null;
-    }
+                                                      \core_calendar\action_factory $factory) {
+    $cm = get_fast_modinfo($event->courseid)->instances['glossary'][$event->instance];
 
     $completion = new \completion_info($cm->get_course());
 
-    $completiondata = $completion->get_data($cm, false, $userid);
+    $completiondata = $completion->get_data($cm, false);
 
     if ($completiondata->completionstate != COMPLETION_INCOMPLETE) {
         return null;

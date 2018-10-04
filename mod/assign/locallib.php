@@ -275,10 +275,7 @@ class assign {
     public function get_return_params() {
         global $PAGE;
 
-        $params = array();
-        if (!WS_SERVER) {
-            $params = $PAGE->url->params();
-        }
+        $params = $PAGE->url->params();
         unset($params['id']);
         unset($params['action']);
         return $params;
@@ -1332,9 +1329,9 @@ class assign {
             // Now process the event.
             if ($event->id) {
                 $calendarevent = calendar_event::load($event->id);
-                $calendarevent->update($event, false);
+                $calendarevent->update($event);
             } else {
-                calendar_event::create($event, false);
+                calendar_event::create($event);
             }
         } else {
             $DB->delete_records('event', array('modulename' => 'assign', 'instance' => $instance->id,
@@ -1353,9 +1350,9 @@ class assign {
             // Now process the event.
             if ($event->id) {
                 $calendarevent = calendar_event::load($event->id);
-                $calendarevent->update($event, false);
+                $calendarevent->update($event);
             } else {
-                calendar_event::create($event, false);
+                calendar_event::create($event);
             }
         } else {
             $DB->delete_records('event', array('modulename' => 'assign', 'instance' => $instance->id,
@@ -1507,9 +1504,8 @@ class assign {
         } else if ($plugin->is_visible() && $plugin->is_configurable()) {
             $name = $plugin->get_subtype() . '_' . $plugin->get_type() . '_enabled';
             $label = $plugin->get_name();
+            $label .= ' ' . $this->get_renderer()->help_icon('enabled', $plugin->get_subtype() . '_' . $plugin->get_type());
             $pluginsenabled[] = $mform->createElement('checkbox', $name, '', $label);
-            $helpicon = $this->get_renderer()->help_icon('enabled', $plugin->get_subtype() . '_' . $plugin->get_type());
-            $pluginsenabled[] = $mform->createElement('static', '', '', $helpicon);
 
             $default = get_config($plugin->get_subtype() . '_' . $plugin->get_type(), 'default');
             if ($plugin->get_config('enabled') !== false) {
@@ -2137,10 +2133,9 @@ class assign {
      * This means the submission modification time is more recent than the
      * grading modification time and the status is SUBMITTED.
      *
-     * @param mixed $currentgroup int|null the group for counting (if null the function will determine it)
      * @return int number of matching submissions
      */
-    public function count_submissions_need_grading($currentgroup = null) {
+    public function count_submissions_need_grading() {
         global $DB;
 
         if ($this->get_instance()->teamsubmission) {
@@ -2148,9 +2143,7 @@ class assign {
             return 0;
         }
 
-        if ($currentgroup === null) {
-            $currentgroup = groups_get_activity_group($this->get_course_module(), true);
-        }
+        $currentgroup = groups_get_activity_group($this->get_course_module(), true);
         list($esql, $params) = get_enrolled_sql($this->get_context(), 'mod/assign:submit', $currentgroup, true);
 
         $params['assignid'] = $this->get_instance()->id;
@@ -2257,15 +2250,12 @@ class assign {
      * Load a count of submissions with a specified status.
      *
      * @param string $status The submission status - should match one of the constants
-     * @param mixed $currentgroup int|null the group for counting (if null the function will determine it)
      * @return int number of matching submissions
      */
-    public function count_submissions_with_status($status, $currentgroup = null) {
+    public function count_submissions_with_status($status) {
         global $DB;
 
-        if ($currentgroup === null) {
-            $currentgroup = groups_get_activity_group($this->get_course_module(), true);
-        }
+        $currentgroup = groups_get_activity_group($this->get_course_module(), true);
         list($esql, $params) = get_enrolled_sql($this->get_context(), 'mod/assign:submit', $currentgroup, true);
 
         $params['assignid'] = $this->get_instance()->id;
@@ -3297,21 +3287,17 @@ class assign {
     /**
      * Does this user have view grade or grade permission for this assignment?
      *
-     * @param mixed $groupid int|null when is set to a value, use this group instead calculating it
      * @return bool
      */
-    public function can_view_grades($groupid = null) {
+    public function can_view_grades() {
         // Permissions check.
         if (!has_any_capability(array('mod/assign:viewgrades', 'mod/assign:grade'), $this->context)) {
             return false;
         }
         // Checks for the edge case when user belongs to no groups and groupmode is sep.
         if ($this->get_course_module()->effectivegroupmode == SEPARATEGROUPS) {
-            if ($groupid === null) {
-                $groupid = groups_get_activity_allowed_groups($this->get_course_module());
-            }
             $groupflag = has_capability('moodle/site:accessallgroups', $this->get_context());
-            $groupflag = $groupflag || !empty($groupid);
+            $groupflag = $groupflag || !empty(groups_get_activity_allowed_groups($this->get_course_module()));
             return (bool)$groupflag;
         }
         return true;
@@ -3320,12 +3306,11 @@ class assign {
     /**
      * Does this user have grade permission for this assignment?
      *
-     * @param int|stdClass $user The object or id of the user who will do the editing (default to current user).
      * @return bool
      */
-    public function can_grade($user = null) {
+    public function can_grade() {
         // Permissions check.
-        if (!has_capability('mod/assign:grade', $this->context, $user)) {
+        if (!has_capability('mod/assign:grade', $this->context)) {
             return false;
         }
 
@@ -5325,19 +5310,16 @@ class assign {
     /**
      * Creates an assign_grading_summary renderable.
      *
-     * @param mixed $activitygroup int|null the group for calculating the grading summary (if null the function will determine it)
      * @return assign_grading_summary renderable object
      */
-    public function get_assign_grading_summary_renderable($activitygroup = null) {
+    public function get_assign_grading_summary_renderable() {
 
         $instance = $this->get_instance();
 
         $draft = ASSIGN_SUBMISSION_STATUS_DRAFT;
         $submitted = ASSIGN_SUBMISSION_STATUS_SUBMITTED;
 
-        if ($activitygroup === null) {
-            $activitygroup = groups_get_activity_group($this->get_course_module());
-        }
+        $activitygroup = groups_get_activity_group($this->get_course_module());
 
         if ($instance->teamsubmission) {
             $defaultteammembers = $this->get_submission_group_members(0, true);
@@ -5345,13 +5327,13 @@ class assign {
 
             $summary = new assign_grading_summary($this->count_teams($activitygroup),
                                                   $instance->submissiondrafts,
-                                                  $this->count_submissions_with_status($draft, $activitygroup),
+                                                  $this->count_submissions_with_status($draft),
                                                   $this->is_any_submission_plugin_enabled(),
-                                                  $this->count_submissions_with_status($submitted, $activitygroup),
+                                                  $this->count_submissions_with_status($submitted),
                                                   $instance->cutoffdate,
                                                   $instance->duedate,
                                                   $this->get_course_module()->id,
-                                                  $this->count_submissions_need_grading($activitygroup),
+                                                  $this->count_submissions_need_grading(),
                                                   $instance->teamsubmission,
                                                   $warnofungroupedusers,
                                                   $this->can_grade());
@@ -5360,13 +5342,13 @@ class assign {
             $countparticipants = $this->count_participants($activitygroup);
             $summary = new assign_grading_summary($countparticipants,
                                                   $instance->submissiondrafts,
-                                                  $this->count_submissions_with_status($draft, $activitygroup),
+                                                  $this->count_submissions_with_status($draft),
                                                   $this->is_any_submission_plugin_enabled(),
-                                                  $this->count_submissions_with_status($submitted, $activitygroup),
+                                                  $this->count_submissions_with_status($submitted),
                                                   $instance->cutoffdate,
                                                   $instance->duedate,
                                                   $this->get_course_module()->id,
-                                                  $this->count_submissions_need_grading($activitygroup),
+                                                  $this->count_submissions_need_grading(),
                                                   $instance->teamsubmission,
                                                   false,
                                                   $this->can_grade());

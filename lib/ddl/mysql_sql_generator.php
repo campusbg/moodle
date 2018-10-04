@@ -510,7 +510,7 @@ class mysql_sql_generator extends sql_generator {
         $fieldsql = $this->getFieldSQL($xmldb_table, $xmldb_field_clone);
 
         $sql = 'ALTER TABLE ' . $this->getTableName($xmldb_table) . ' CHANGE ' .
-               $this->getEncQuoted($xmldb_field->getName()) . ' ' . $fieldsql;
+               $xmldb_field->getName() . ' ' . $fieldsql;
 
         return array($sql);
     }

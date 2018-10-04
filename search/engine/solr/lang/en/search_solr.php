@@ -17,7 +17,7 @@
 /**
  * Strings for component 'search_solr'.
  *
- * @package   search_solr
+ * @package   core_search
  * @copyright Prateek Sachan {@link http://prateeksachan.com}
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */

@@ -42,9 +42,7 @@ class core_question_generator_testcase extends advanced_testcase {
         $count = $DB->count_records('question_categories');
 
         $cat = $generator->create_question_category();
-        $count += $count ? 1 : 2; // Calling $generator->create_question_category() for the first time
-                                  // creates a Top category as well.
-        $this->assertEquals($count, $DB->count_records('question_categories'));
+        $this->assertEquals($count + 1, $DB->count_records('question_categories'));
 
         $cat = $generator->create_question_category(array(
                 'name' => 'My category', 'sortorder' => 1));

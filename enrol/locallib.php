@@ -117,7 +117,6 @@ class course_enrolment_manager {
     private $_plugins = null;
     private $_allplugins = null;
     private $_roles = null;
-    private $_visibleroles = null;
     private $_assignableroles = null;
     private $_assignablerolesothers = null;
     private $_groups = null;
@@ -402,7 +401,6 @@ class course_enrolment_manager {
         $extrafields = get_extra_user_fields($this->get_context(), array('username', 'lastaccess'));
         $extrafields[] = 'username';
         $extrafields[] = 'lastaccess';
-        $extrafields[] = 'maildisplay';
         $ufields = user_picture::fields('u', $extrafields);
 
         return array($ufields, $params, $wherecondition);
@@ -594,18 +592,6 @@ class course_enrolment_manager {
             $this->_roles = role_fix_names(get_all_roles($this->context), $this->context);
         }
         return $this->_roles;
-    }
-
-    /**
-     * Gets all of the roles this course can contain.
-     *
-     * @return array
-     */
-    public function get_viewable_roles() {
-        if ($this->_visibleroles === null) {
-            $this->_visibleroles = get_viewable_roles($this->context);
-        }
-        return $this->_visibleroles;
     }
 
     /**
@@ -1047,7 +1033,7 @@ class course_enrolment_manager {
         $strunenrol = get_string('unenrol', 'enrol');
         $stredit = get_string('edit');
 
-        $visibleroles   = $this->get_viewable_roles();
+        $allroles   = $this->get_all_roles();
         $assignable = $this->get_assignable_roles();
         $allgroups  = $this->get_all_groups();
         $context    = $this->get_context();
@@ -1069,15 +1055,7 @@ class course_enrolment_manager {
                 if (!is_siteadmin() and !isset($assignable[$rid])) {
                     $unchangeable = true;
                 }
-
-                if (isset($visibleroles[$rid])) {
-                    $label = $visibleroles[$rid];
-                } else {
-                    $label = get_string('novisibleroles', 'role');
-                    $unchangeable = true;
-                }
-
-                $details['roles'][$rid] = array('text' => $label, 'unchangeable' => $unchangeable);
+                $details['roles'][$rid] = array('text'=>$allroles[$rid]->localname, 'unchangeable'=>$unchangeable);
             }
 
             // Users

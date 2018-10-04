@@ -127,8 +127,7 @@ function core_myprofile_navigation(core_user\output\myprofile\tree $tree, $user,
     } else {
         $hiddenfields = array_flip(explode(',', $CFG->hiddenuserfields));
     }
-    $canviewuseridentity = has_capability('moodle/site:viewuseridentity', $courseorusercontext);
-    if ($canviewuseridentity) {
+    if (has_capability('moodle/site:viewuseridentity', $courseorusercontext)) {
         $identityfields = array_flip(explode(',', $CFG->showuseridentity));
     } else {
         $identityfields = array();
@@ -152,14 +151,11 @@ function core_myprofile_navigation(core_user\output\myprofile\tree $tree, $user,
         $tree->add_node($node);
     }
 
-    if ($iscurrentuser
-        or (!isset($hiddenfields['email']) and (
-            $user->maildisplay == core_user::MAILDISPLAY_EVERYONE
-            or ($user->maildisplay == core_user::MAILDISPLAY_COURSE_MEMBERS_ONLY and enrol_sharing_course($user, $USER))
-            or has_capability('moodle/course:useremail', $courseorusercontext) // TODO: Deprecate/remove for MDL-37479.
-        ))
-        or (isset($identityfields['email']) and $canviewuseridentity)
-       ) {
+    if (isset($identityfields['email']) and ($iscurrentuser
+                                             or $user->maildisplay == 1
+                                             or has_capability('moodle/course:useremail', $courseorusercontext)
+                                             or has_capability('moodle/site:viewuseridentity', $courseorusercontext)
+                                             or ($user->maildisplay == 2 and enrol_sharing_course($user, $USER)))) {
         $node = new core_user\output\myprofile\node('contact', 'email', get_string('email'), null, null,
             obfuscate_mailto($user->email, ''));
         $tree->add_node($node);
@@ -229,7 +225,7 @@ function core_myprofile_navigation(core_user\output\myprofile\tree $tree, $user,
 
     if (!isset($hiddenfields['mycourses'])) {
         $showallcourses = optional_param('showallcourses', 0, PARAM_INT);
-        if ($mycourses = enrol_get_all_users_courses($user->id, true, null)) {
+        if ($mycourses = enrol_get_all_users_courses($user->id, true, null, 'visible DESC, sortorder ASC')) {
             $shown = 0;
             $courselisting = html_writer::start_tag('ul');
             foreach ($mycourses as $mycourse) {

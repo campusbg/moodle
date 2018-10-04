@@ -261,17 +261,15 @@ class core_question_privacy_provider_testcase extends \core_privacy\tests\provid
         // Run the delete functions as default user.
         $this->setUser();
 
-        // Find out how many questions are in the question bank to start with.
-        $questioncount = $DB->count_records('question');
-
         // The delete functions should do nothing here.
+        $this->assertCount(6, $DB->get_records('question'));
 
         // Delete for all users in context.
         provider::delete_data_for_all_users_in_context($expectedcontext);
-        $this->assertEquals($questioncount, $DB->count_records('question'));
+        $this->assertCount(6, $DB->get_records('question'));
 
         provider::delete_data_for_user($approvedcontextlist);
-        $this->assertEquals($questioncount, $DB->count_records('question'));
+        $this->assertCount(6, $DB->get_records('question'));
     }
 
     /**
@@ -323,14 +321,11 @@ class core_question_privacy_provider_testcase extends \core_privacy\tests\provid
             [$context->id]
         );
 
-        // Find out how many questions are in the question bank to start with.
-        $questioncount = $DB->count_records('question');
-
         // Delete the data and check it is removed.
         $this->setUser();
         provider::delete_data_for_user($approvedcontextlist);
 
-        $this->assertEquals($questioncount, $DB->count_records('question'));
+        $this->assertCount(5, $DB->get_records('question'));
 
         $qrecord = $DB->get_record('question', ['id' => $q1->id]);
         $this->assertEquals(0, $qrecord->createdby);
@@ -396,14 +391,11 @@ class core_question_privacy_provider_testcase extends \core_privacy\tests\provid
         $questiongenerator->update_question($q3);
         $q5 = $questiongenerator->create_question('shortanswer', null, array('category' => $othercat->id));
 
-        // Find out how many questions are in the question bank to start with.
-        $questioncount = $DB->count_records('question');
-
         // Delete the data and check it is removed.
         $this->setUser();
         provider::delete_data_for_all_users_in_context($context);
 
-        $this->assertEquals($questioncount, $DB->count_records('question'));
+        $this->assertCount(5, $DB->get_records('question'));
 
         $qrecord = $DB->get_record('question', ['id' => $q1->id]);
         $this->assertEquals(0, $qrecord->createdby);

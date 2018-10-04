@@ -110,7 +110,6 @@ class behat_partial_named_selector extends \Behat\Mink\Selector\PartialNamedSele
         'xpath_element' => 'xpath_element',
         'form_row' => 'form_row',
         'autocomplete_selection' => 'autocomplete_selection',
-        'autocomplete_suggestions' => 'autocomplete_suggestions',
     );
 
     /**
@@ -127,7 +126,7 @@ class behat_partial_named_selector extends \Behat\Mink\Selector\PartialNamedSele
 XPATH
         , 'block' => <<<XPATH
 .//*[@data-block][contains(concat(' ', normalize-space(@class), ' '), concat(' ', %locator%, ' ')) or
-     descendant::*[self::h2|self::h3|self::h4|self::h5][normalize-space(.) = %locator%]  or
+     descendant::*[self::h2|self::h3][normalize-space(.) = %locator%]  or
      @aria-label = %locator%]
 XPATH
         , 'dialogue' => <<<XPATH
@@ -143,7 +142,7 @@ XPATH
 .//div[
         contains(concat(' ', normalize-space(@class), ' '), ' modal-content ')
             and
-        normalize-space(descendant::*[self::h4 or self::h5][contains(concat(' ', normalize-space(@class), ' '), ' modal-title ')]) = %locator%
+        normalize-space(descendant::h4[contains(concat(' ', normalize-space(@class), ' '), ' modal-title ')]) = %locator%
     ]
         |
 .//div[
@@ -195,9 +194,6 @@ XPATH
 XPATH
         , 'autocomplete_selection' => <<<XPATH
 .//div[contains(concat(' ', normalize-space(@class), ' '), concat(' ', 'form-autocomplete-selection', ' '))]/span[@role='listitem'][contains(normalize-space(.), %locator%)]
-XPATH
-        , 'autocomplete_suggestions' => <<<XPATH
-.//ul[contains(concat(' ', normalize-space(@class), ' '), concat(' ', 'form-autocomplete-suggestions', ' '))]/li[@role='option'][contains(normalize-space(.), %locator%)]
 XPATH
     );
 

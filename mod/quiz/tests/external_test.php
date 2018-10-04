@@ -1587,8 +1587,6 @@ class mod_quiz_external_testcase extends externallib_advanced_testcase {
     public function test_get_attempt_access_information() {
         global $DB;
 
-        $this->setAdminUser();
-
         // Create a new quiz with attempts.
         $quizgenerator = $this->getDataGenerator()->get_plugin_generator('mod_quiz');
         $data = array('course' => $this->course->id,
@@ -1609,7 +1607,8 @@ class mod_quiz_external_testcase extends externallib_advanced_testcase {
         $question = $questiongenerator->create_question('truefalse', null, array('category' => $cat->id));
         $question = $questiongenerator->create_question('essay', null, array('category' => $cat->id));
 
-        quiz_add_random_questions($quiz, 0, $cat->id, 1, false);
+        $question = $questiongenerator->create_question('random', null, array('category' => $cat->id));
+        quiz_add_quiz_question($question->id, $quiz);
 
         $quizobj = quiz::create($quiz->id, $this->student->id);
 
@@ -1671,7 +1670,7 @@ class mod_quiz_external_testcase extends externallib_advanced_testcase {
      * Test get_quiz_required_qtypes
      */
     public function test_get_quiz_required_qtypes() {
-        $this->setAdminUser();
+        global $DB;
 
         // Create a new quiz.
         $quizgenerator = $this->getDataGenerator()->get_plugin_generator('mod_quiz');
@@ -1692,7 +1691,8 @@ class mod_quiz_external_testcase extends externallib_advanced_testcase {
         $question = $questiongenerator->create_question('truefalse', null, array('category' => $cat->id));
         $question = $questiongenerator->create_question('essay', null, array('category' => $cat->id));
 
-        quiz_add_random_questions($quiz, 0, $cat->id, 1, false);
+        $question = $questiongenerator->create_question('random', null, array('category' => $cat->id));
+        quiz_add_quiz_question($question->id, $quiz);
 
         $this->setUser($this->student);
 

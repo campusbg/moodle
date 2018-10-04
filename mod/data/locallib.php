@@ -613,7 +613,7 @@ function data_set_events($data) {
             $event->visible      = instance_is_visible('data', $data);
             $event->timeduration = 0;
             $calendarevent = calendar_event::load($event->id);
-            $calendarevent->update($event, false);
+            $calendarevent->update($event);
         } else {
             // Calendar event is on longer needed.
             $calendarevent = calendar_event::load($event->id);
@@ -633,7 +633,7 @@ function data_set_events($data) {
             $event->timesort     = $data->timeavailablefrom;
             $event->visible      = instance_is_visible('data', $data);
             $event->timeduration = 0;
-            calendar_event::create($event, false);
+            calendar_event::create($event);
         }
     }
 
@@ -652,7 +652,7 @@ function data_set_events($data) {
             $event->visible      = instance_is_visible('data', $data);
             $event->timeduration = 0;
             $calendarevent = calendar_event::load($event->id);
-            $calendarevent->update($event, false);
+            $calendarevent->update($event);
         } else {
             // Calendar event is on longer needed.
             $calendarevent = calendar_event::load($event->id);
@@ -672,7 +672,7 @@ function data_set_events($data) {
             $event->timesort     = $data->timeavailableto;
             $event->visible      = instance_is_visible('data', $data);
             $event->timeduration = 0;
-            calendar_event::create($event, false);
+            calendar_event::create($event);
         }
     }
 }

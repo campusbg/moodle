@@ -29,11 +29,9 @@ defined('MOODLE_INTERNAL') || die();
 use context;
 use context_helper;
 use context_module;
-use moodle_recordset;
 use stdClass;
 use core_privacy\local\metadata\collection;
 use core_privacy\local\request\approved_contextlist;
-use core_privacy\local\request\contextlist;
 use core_privacy\local\request\helper;
 use core_privacy\local\request\transform;
 use core_privacy\local\request\writer;
@@ -257,7 +255,7 @@ class provider implements
      * @param callable $export The function to export the dataset, receives the last value from $splitkey and the dataset.
      * @return void
      */
-    protected static function recordset_loop_and_export(moodle_recordset $recordset, $splitkey, $initial,
+    protected static function recordset_loop_and_export(\moodle_recordset $recordset, $splitkey, $initial,
             callable $reducer, callable $export) {
 
         $data = $initial;

@@ -1126,20 +1126,18 @@ abstract class webservice_server implements webservice_server_interface {
         // Must be the same XXX key name as the external_settings::set_XXX function.
         // Must be the same XXX ws parameter name as 'moodlewssettingXXX'.
         $externalsettings = array(
-            'raw' => array('default' => false, 'type' => PARAM_BOOL),
-            'fileurl' => array('default' => true, 'type' => PARAM_BOOL),
-            'filter' => array('default' => false, 'type' => PARAM_BOOL),
-            'lang' => array('default' => '', 'type' => PARAM_LANG),
-        );
+            'raw' => false,
+            'fileurl' => true,
+            'filter' =>  false);
 
         // Load the external settings with the web service settings.
         $settings = external_settings::get_instance();
-        foreach ($externalsettings as $name => $settingdata) {
+        foreach ($externalsettings as $name => $default) {
 
             $wsparamname = 'moodlewssetting' . $name;
 
             // Retrieve and remove the setting parameter from the request.
-            $value = optional_param($wsparamname, $settingdata['default'], $settingdata['type']);
+            $value = optional_param($wsparamname, $default, PARAM_BOOL);
             unset($_GET[$wsparamname]);
             unset($_POST[$wsparamname]);
 
@@ -1205,8 +1203,6 @@ abstract class webservice_base_server extends webservice_server {
      * @uses die
      */
     public function run() {
-        global $CFG, $SESSION;
-
         // we will probably need a lot of memory in some functions
         raise_memory_limit(MEMORY_EXTRA);
 
@@ -1239,23 +1235,6 @@ abstract class webservice_base_server extends webservice_server {
         $event = \core\event\webservice_function_called::create($params);
         $event->set_legacy_logdata(array(SITEID, 'webservice', $this->functionname, '' , getremoteaddr() , 0, $this->userid));
         $event->trigger();
-
-        // Do additional setup stuff.
-        $settings = external_settings::get_instance();
-        $sessionlang = $settings->get_lang();
-        if (!empty($sessionlang)) {
-            $SESSION->lang = $sessionlang;
-        }
-
-        setup_lang_from_browser();
-
-        if (empty($CFG->lang)) {
-            if (empty($SESSION->lang)) {
-                $CFG->lang = 'en';
-            } else {
-                $CFG->lang = $SESSION->lang;
-            }
-        }
 
         // finally, execute the function - any errors are catched by the default exception handler
         $this->execute();

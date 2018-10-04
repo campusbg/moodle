@@ -31,7 +31,6 @@ $help = "Evaluates the provided model.
 
 Options:
 --modelid              Model id
---list                 List models
 --non-interactive      Not interactive questions
 --timesplitting        Restrict the evaluation to 1 single time splitting method (Optional)
 --filter               Analyser dependant. e.g. A courseid would evaluate the model using a single course (Optional)
@@ -48,7 +47,6 @@ list($options, $unrecognized) = cli_get_params(
     array(
         'help'                  => false,
         'modelid'               => false,
-        'list'                  => false,
         'timesplitting'         => false,
         'reuse-prev-analysed'   => true,
         'non-interactive'       => false,
@@ -64,8 +62,8 @@ if ($options['help']) {
     exit(0);
 }
 
-if ($options['list'] || $options['modelid'] === false) {
-    \tool_analytics\clihelper::list_models();
+if ($options['modelid'] === false) {
+    echo $help;
     exit(0);
 }
 

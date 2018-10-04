@@ -121,9 +121,6 @@ class grading_app implements templatable, renderable {
             }
         }
 
-        $export->actiongrading = 'grading';
-        $export->viewgrading = get_string('viewgrading', 'mod_assign');
-
         $export->showreview = $showreview;
 
         $time = time();

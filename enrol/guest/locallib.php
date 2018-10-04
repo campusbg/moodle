@@ -37,6 +37,7 @@ class enrol_guest_enrol_form extends moodleform {
 
         $heading = $plugin->get_instance_name($instance);
         $mform->addElement('header', 'guestheader', $heading);
+	$mform->addElement('header', 'guestheader', 'Auto-matriculaci&oacute;n (Colaborador)');
 
         $mform->addElement('password', 'guestpassword', get_string('password', 'enrol_guest'));
 

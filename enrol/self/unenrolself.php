@@ -57,5 +57,6 @@ echo $OUTPUT->header();
 $yesurl = new moodle_url($PAGE->url, array('confirm'=>1, 'sesskey'=>sesskey()));
 $nourl = new moodle_url('/course/view.php', array('id'=>$course->id));
 $message = get_string('unenrolselfconfirm', 'enrol_self', format_string($course->fullname));
+//$message = 'Para desmatricularse del curso, usted debe contactarse con el Administrador';
 echo $OUTPUT->confirm($message, $yesurl, $nourl);
 echo $OUTPUT->footer();

@@ -30,8 +30,7 @@
       * has_action - boolean
       * action - string
       * get_title - string
-      * get_content - string
-      * is_hidden - boolean
+      * text - HTML
 
     Example context (json):
     {
@@ -40,25 +39,21 @@
                 "has_action": true,
                 "action": "#",
                 "get_title": "Test title",
-                "get_content": "First & fresh",
-                "is_hidden": false
+                "text": "First & fresh"
             },
             {
                 "has_action": true,
                 "action": "#",
                 "get_title": "Second item & a title",
-                "get_content": "Second item",
-                "is_hidden": false
+                "text": "Second item"
             },
             {
                 "has_action": false,
-                "get_content": "Third item",
-                "is_hidden": false
+                "text": "Third item"
             },
             {
                 "has_action": false,
-                "get_content": "Fourth & last",
-                "is_hidden": true
+                "text": "Fourth & last"
             }
         ]
     }
@@ -67,12 +62,10 @@
     <ol class="breadcrumb">
         {{#get_items}}
             {{#has_action}}
-                <li class="breadcrumb-item{{#is_hidden}} dimmed_text{{/is_hidden}}">
-                    <a href="{{{action}}}" {{#get_title}}title="{{get_title}}"{{/get_title}}>{{{get_content}}}</a>
-                </li>
+                <li class="breadcrumb-item"><a href="{{{action}}}" {{#get_title}}title="{{get_title}}"{{/get_title}}>{{{text}}}</a></li>
             {{/has_action}}
             {{^has_action}}
-                <li class="breadcrumb-item{{#is_hidden}} dimmed_text{{/is_hidden}}">{{{text}}}</li>
+                <li class="breadcrumb-item">{{{text}}}</li>
             {{/has_action}}
         {{/get_items}}
     </ol>

@@ -244,10 +244,11 @@ class core_course_management_renderer extends plugin_renderer_base {
             );
         } else {
             $icon = $this->output->pix_icon(
-                'i/empty',
+                'i/navigationitem',
                 '',
                 'moodle',
-                array('class' => 'tree-icon'));
+                array('class' => 'tree-icon', 'title' => get_string('showcategory', 'moodle', $text))
+            );
             $icon = html_writer::span($icon, 'float-left');
         }
         $actions = \core_course\management\helper::get_category_listitem_actions($category);
@@ -529,7 +530,7 @@ class core_course_management_renderer extends plugin_renderer_base {
             array('id' => 'course-listing-title', 'tabindex' => '0'));
         $html .= $this->course_listing_actions($category, $course, $perpage);
         $html .= $this->listing_pagination($category, $page, $perpage, false, $viewmode);
-        $html .= html_writer::start_tag('ul', array('class' => 'ml course-list', 'role' => 'group'));
+        $html .= html_writer::start_tag('ul', array('class' => 'ml', 'role' => 'group'));
         foreach ($category->get_courses($options) as $listitem) {
             $html .= $this->course_listitem($category, $listitem, $courseid);
         }

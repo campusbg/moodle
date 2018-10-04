@@ -1080,7 +1080,7 @@ abstract class moodle_database {
      * Returns detailed information about columns in table. This information is cached internally.
      * @param string $table The table's name.
      * @param bool $usecache Flag to use internal cacheing. The default is true.
-     * @return database_column_info[] of database_column_info objects indexed with column names
+     * @return array of database_column_info objects indexed with column names
      */
     public abstract function get_columns($table, $usecache=true);
 
@@ -2686,15 +2686,5 @@ abstract class moodle_database {
      */
     public function perf_get_queries_time() {
         return $this->queriestime;
-    }
-
-    /**
-     * Whether the database is able to support full-text search or not.
-     *
-     * @return bool
-     */
-    public function is_fulltext_search_supported() {
-        // No support unless specified.
-        return false;
     }
 }

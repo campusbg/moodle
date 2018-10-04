@@ -62,7 +62,7 @@ class core_renderer extends \core_renderer {
         if (is_array($classes)) {
             $classes = implode(' ', $classes);
         }
-        return parent::box_start($classes . ' py-3', $id, $attributes);
+        return parent::box_start($classes . ' p-y-1', $id, $attributes);
     }
 
     /**
@@ -72,15 +72,43 @@ class core_renderer extends \core_renderer {
      */
     public function full_header() {
         global $PAGE;
+    $imgback = theme_eguru_get_filearea('imgbackdefaultimage');
 
-        $header = new stdClass();
-        $header->settingsmenu = $this->context_header_settings_menu();
-        $header->contextheader = $this->context_header();
-        $header->hasnavbar = empty($PAGE->layout_options['nonavbar']);
-        $header->navbar = $this->navbar();
-        $header->pageheadingbutton = $this->page_heading_button();
-        $header->courseheader = $this->course_header();
-        return $this->render_from_template('theme_boost/header', $header);
+//poner la imagen de fondo subida desde eguru
+    if(!empty($imgback)){
+    echo html_writer::start_tag('img', array('class' => 'col-md-12','style' => 'position: fixed; /*opacity: 0.5;*/ height: 128%; width: 100%; max-width: 1366px;  top: -2%;', 'src' => '//campusbg.bancoguayaquil.com/campusbg/pluginfile.php/1/theme_eguru/imgbackdefault/1532644209' . $imgback , 'alt' => ''));
+    }
+        $html = html_writer::start_tag('header', array('id' => 'page-header', 'class' => 'row'));
+        $html .= html_writer::start_div('col-xs-12 p-a-1');
+        $html .= html_writer::start_div('card', array('style' => 'background-color: transparent;'));
+        $html .= html_writer::start_div('card-block');
+        $html .= html_writer::div($this->context_header_settings_menu(), 'pull-xs-right context-header-settings-menu');
+        $html .= html_writer::start_div('pull-xs-right');
+        //$html .= html_writer::tag('h3',strftime("%A,%d de %B del %Y"), array('style' => 'margin-right:20px;'));
+        $html .= html_writer::tag('h3',strftime("%d/%m/%Y"), array('style' => 'margin-right:20px;'));
+        $html .= html_writer::end_div();
+        $html .= html_writer::start_div('pull-xs-left');
+        $html .= $this->context_header();
+	//$html .= html_writer::tag('h3',strftime("%A, %d de %B de %Y"));
+//	$html .= html_writer::tag('h3',date("Y-M-d"));
+
+        $html .= html_writer::end_div();
+        $pageheadingbutton = $this->page_heading_button();
+        if (empty($PAGE->layout_options['nonavbar'])) {
+            $html .= html_writer::start_div('clearfix w-100 pull-xs-left', array('id' => 'page-navbar'));
+            $html .= html_writer::tag('div', $this->navbar(), array('class' => 'breadcrumb-nav'));
+            $html .= html_writer::div($pageheadingbutton, 'breadcrumb-button pull-xs-right');
+            $html .= html_writer::end_div();
+        } else if ($pageheadingbutton) {
+            $html .= html_writer::div($pageheadingbutton, 'breadcrumb-button nonavbar pull-xs-right');
+        }
+        $html .= html_writer::tag('div', $this->course_header(), array('id' => 'course-header'));
+        $html .= html_writer::end_div();
+        $html .= html_writer::end_div();
+        $html .= html_writer::end_div();
+        $html .= html_writer::end_div();
+        $html .= html_writer::end_tag('header');
+        return $html;
     }
 
     /**
@@ -126,7 +154,7 @@ class core_renderer extends \core_renderer {
      * @param int $headinglevel What level the 'h' tag will be.
      * @return string HTML for the header bar.
      */
-    public function context_header($headerinfo = null, $headinglevel = 1) {
+    public function context_header($headerinfo = null, $headinglevel = 3) {
         global $SITE;
 
         if ($this->should_display_main_logo($headinglevel)) {
@@ -448,8 +476,7 @@ class core_renderer extends \core_renderer {
             $url = $url->out(false);
         }
         $context->logourl = $url;
-        $context->sitename = format_string($SITE->fullname, true,
-            ['context' => context_course::instance(SITEID), "escape" => false]);
+        $context->sitename = format_string($SITE->fullname, true, ['context' => context_course::instance(SITEID), "escape" => false]);
 
         return $this->render_from_template('core/loginform', $context);
     }
@@ -469,8 +496,7 @@ class core_renderer extends \core_renderer {
             $url = $url->out(false);
         }
         $context['logourl'] = $url;
-        $context['sitename'] = format_string($SITE->fullname, true,
-            ['context' => context_course::instance(SITEID), "escape" => false]);
+        $context['sitename'] = format_string($SITE->fullname, true, ['context' => context_course::instance(SITEID), "escape" => false]);
 
         return $this->render_from_template('core/signup_form_layout', $context);
     }
@@ -533,6 +559,7 @@ class core_renderer extends \core_renderer {
                 ($currentnode->key === 'myprofile')) {
             $showusermenu = true;
         }
+
 
         if ($showfrontpagemenu) {
             $settingsnode = $this->page->settingsnav->find('frontpage', navigation_node::TYPE_SETTING);
@@ -678,7 +705,7 @@ class core_renderer extends \core_renderer {
                     $link = new action_link(new moodle_url('#'), $menuitem->text, null, ['disabled' => true], $menuitem->icon);
                 }
                 if ($indent) {
-                    $link->add_class('ml-4');
+                    $link->add_class('m-l-1');
                 }
                 if (!empty($menuitem->classes)) {
                     $link->add_class(implode(" ", $menuitem->classes));

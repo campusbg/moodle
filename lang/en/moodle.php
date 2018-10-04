@@ -620,10 +620,9 @@ $string['emaildigestsubjects'] = 'Subjects (daily email with subjects only)';
 $string['emaildisable'] = 'This email address is disabled';
 $string['emaildisableclick'] = 'Click here to disable all email from being sent to this address';
 $string['emaildisplay'] = 'Email display';
-$string['emaildisplay_help'] = 'Privileged users (such as teachers and managers) will always be able to see your email address.';
 $string['emaildisplaycourse'] = 'Allow only other course members to see my email address';
 $string['emaildisplayhidden'] = 'Email hidden';
-$string['emaildisplayno'] = 'Hide my email address from non-privileged users';
+$string['emaildisplayno'] = 'Hide my email address from everyone';
 $string['emaildisplayyes'] = 'Allow everyone to see my email address';
 $string['emailenable'] = 'This email address is enabled';
 $string['emailenableclick'] = 'Click here to re-enable all email being sent to this address';
@@ -807,7 +806,6 @@ $string['feedback'] = 'Feedback';
 $string['file'] = 'File';
 $string['fileexists'] = 'There is already a file called {$a}';
 $string['filemissing'] = '{$a} is missing';
-$string['filereaderror'] = 'Unable to read the file \'{$a}\'. Please check that it really is a file and not a folder.';
 $string['files'] = 'Files';
 $string['filesanduploads'] = 'Files and uploads';
 $string['filesfolders'] = 'Files/folders';
@@ -1162,7 +1160,6 @@ $string['markedthistopic'] = 'This topic is highlighted as the current topic';
 $string['markthistopic'] = 'Highlight this topic as the current topic';
 $string['matchingsearchandrole'] = 'Matching \'{$a->search}\' and {$a->role}';
 $string['maxareabytesreached'] = 'The file (or the total size of several files) is larger than the space remaining in this area.';
-$string['maxsectionslimit'] = 'Cannot create new section as it would exceed the maximum number of sections allowed for this course ({$a}).';
 $string['maxfilesize'] = 'Maximum size for new files: {$a}';
 $string['maxfilesreached'] = 'You are allowed to attach a maximum of {$a} file(s) to this item';
 $string['maximumchars'] = 'Maximum of {$a} characters';
@@ -1571,7 +1568,7 @@ $string['privacy:metadata:log:course'] = 'course';
 $string['privacy:metadata:log:info'] = 'Additional information';
 $string['privacy:metadata:log:ip'] = 'The IP address used at the time of the event';
 $string['privacy:metadata:log:module'] = 'module';
-$string['privacy:metadata:log:time'] = 'The time when the action took place';
+$string['privacy:metadata:log:time'] = 'The date at wich the action took place';
 $string['privacy:metadata:log:url'] = 'The URL related to the event';
 $string['privacy:metadata:log:userid'] = 'The ID of the user who performed the action';
 $string['privacy:metadata:task_adhoc'] = 'The status of adhoc tasks.';
@@ -2200,6 +2197,10 @@ $string['yourteacher'] = 'your {$a}';
 $string['yourwordforx'] = 'Your word for \'{$a}\'';
 $string['zippingbackup'] = 'Zipping backup';
 $string['deprecatedeventname'] = '{$a} (no longer in use)';
+
+// Deprecated since Moodle 3.1.
+$string['filetoolarge'] = 'is too large to upload';
+$string['maxbytesforfile'] = 'The file {$a} is larger than the maximum size allowed.';
 
 // Deprecated since Moodle 3.2.
 $string['modchooserenable'] = 'Activity chooser on';

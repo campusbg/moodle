@@ -139,16 +139,7 @@ if (!$edit) {
 
     } else if ($data = $mform->get_data()) {
         if (!$admin and empty($data->override)) {
-            $records = $DB->get_records('grade_letters', array('contextid' => $context->id));
-            foreach ($records as $record) {
-                $DB->delete_records('grade_letters', array('id' => $record->id));
-                // Trigger the letter grade deleted event.
-                $event = \core\event\grade_letter_deleted::create(array(
-                    'objectid' => $record->id,
-                    'context' => $context,
-                ));
-                $event->trigger();
-            }
+            $DB->delete_records('grade_letters', array('contextid' => $context->id));
             redirect($returnurl);
         }
 
@@ -193,45 +184,21 @@ if (!$edit) {
                     // The letter has been assigned to another boundary, we update it.
                     $record->id = $pool[$boundary]->id;
                     $DB->update_record('grade_letters', $record);
-                    // Trigger the letter grade updated event.
-                    $event = \core\event\grade_letter_updated::create(array(
-                        'objectid' => $record->id,
-                        'context' => $context,
-                    ));
-                    $event->trigger();
                 }
                 unset($pool[$boundary]);    // Remove the letter from the pool.
             } else if ($candidate = array_pop($pool)) {
                 // The boundary is new, we update a random record from the pool.
                 $record->id = $candidate->id;
                 $DB->update_record('grade_letters', $record);
-                // Trigger the letter grade updated event.
-                $event = \core\event\grade_letter_updated::create(array(
-                    'objectid' => $record->id,
-                    'context' => $context,
-                ));
-                $event->trigger();
             } else {
                 // No records were found, this must be a new letter.
-                $newid = $DB->insert_record('grade_letters', $record);
-                // Trigger the letter grade added event.
-                $event = \core\event\grade_letter_created::create(array(
-                    'objectid' => $newid,
-                    'context' => $context,
-                ));
-                $event->trigger();
+                $DB->insert_record('grade_letters', $record);
             }
         }
 
         // Delete the unused records.
         foreach($pool as $leftover) {
             $DB->delete_records('grade_letters', array('id' => $leftover->id));
-            // Trigger the letter grade deleted event.
-            $event = \core\event\grade_letter_deleted::create(array(
-                'objectid' => $leftover->id,
-                'context' => $context,
-            ));
-            $event->trigger();
         }
 
         redirect($returnurl);

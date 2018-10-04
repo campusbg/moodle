@@ -41,7 +41,7 @@ class core_role_allow_switch_page extends core_role_allow_role_page {
     }
 
     protected function set_allow($fromroleid, $targetroleid) {
-        core_role_set_switch_allowed($fromroleid, $targetroleid);
+        allow_switch($fromroleid, $targetroleid);
     }
 
     protected function is_allowed_target($targetroleid) {

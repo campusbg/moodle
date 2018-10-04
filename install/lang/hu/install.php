@@ -30,7 +30,7 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-$string['admindirname'] = 'Rendszergazda-könyvtár';
+$string['admindirname'] = 'Rendszergazdakönyvtár';
 $string['availablelangs'] = 'Elérhető nyelvek listája';
 $string['chooselanguagehead'] = 'Nyelv kiválasztása';
 $string['chooselanguagesub'] = 'Válasszon nyelvet a telepítéshez! Ez lesz a portál alapbeállítás szerinti nyelve, de később módosíthatja.';

@@ -31,7 +31,6 @@ $help = "Enables the provided model.
 
 Options:
 --modelid           Model id
---list              List models
 --timesplitting     Time splitting method full class name
 -h, --help          Print out this help
 
@@ -43,7 +42,6 @@ Example:
 list($options, $unrecognized) = cli_get_params(
     array(
         'help'            => false,
-        'list'            => false,
         'modelid'         => false,
         'timesplitting'   => false
     ),
@@ -57,12 +55,7 @@ if ($options['help']) {
     exit(0);
 }
 
-if ($options['list'] || $options['modelid'] === false) {
-    \tool_analytics\clihelper::list_models();
-    exit(0);
-}
-
-if ($options['timesplitting'] === false) {
+if ($options['modelid'] === false || $options['timesplitting'] === false) {
     echo $help;
     exit(0);
 }

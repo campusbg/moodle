@@ -918,9 +918,6 @@ class core_accesslib_testcase extends advanced_testcase {
 
             $result = get_default_role_archetype_allows('switch', $archetype);
             $this->assertInternalType('array', $result);
-
-            $result = get_default_role_archetype_allows('view', $archetype);
-            $this->assertInternalType('array', $result);
         }
 
         $result = get_default_role_archetype_allows('assign', '');
@@ -930,9 +927,6 @@ class core_accesslib_testcase extends advanced_testcase {
         $this->assertSame(array(), $result);
 
         $result = get_default_role_archetype_allows('switch', '');
-        $this->assertSame(array(), $result);
-
-        $result = get_default_role_archetype_allows('view', '');
         $this->assertSame(array(), $result);
 
         $result = get_default_role_archetype_allows('assign', 'wrongarchetype');
@@ -946,16 +940,12 @@ class core_accesslib_testcase extends advanced_testcase {
         $result = get_default_role_archetype_allows('switch', 'wrongarchetype');
         $this->assertSame(array(), $result);
         $this->assertDebuggingCalled();
-
-        $result = get_default_role_archetype_allows('view', 'wrongarchetype');
-        $this->assertSame(array(), $result);
-        $this->assertDebuggingCalled();
     }
 
     /**
      * Test allowing of role assignments.
      */
-    public function test_core_role_set_assign_allowed() {
+    public function test_allow_assign() {
         global $DB, $CFG;
 
         $this->resetAfterTest();
@@ -964,7 +954,7 @@ class core_accesslib_testcase extends advanced_testcase {
         $student = $DB->get_record('role', array('shortname'=>'student'), '*', MUST_EXIST);
 
         $this->assertFalse($DB->record_exists('role_allow_assign', array('roleid'=>$otherid, 'allowassign'=>$student->id)));
-        core_role_set_assign_allowed($otherid, $student->id);
+        allow_assign($otherid, $student->id);
         $this->assertTrue($DB->record_exists('role_allow_assign', array('roleid'=>$otherid, 'allowassign'=>$student->id)));
 
         // Test event trigger.
@@ -984,7 +974,7 @@ class core_accesslib_testcase extends advanced_testcase {
     /**
      * Test allowing of role overrides.
      */
-    public function test_core_role_set_override_allowed() {
+    public function test_allow_override() {
         global $DB, $CFG;
 
         $this->resetAfterTest();
@@ -993,7 +983,7 @@ class core_accesslib_testcase extends advanced_testcase {
         $student = $DB->get_record('role', array('shortname'=>'student'), '*', MUST_EXIST);
 
         $this->assertFalse($DB->record_exists('role_allow_override', array('roleid'=>$otherid, 'allowoverride'=>$student->id)));
-        core_role_set_override_allowed($otherid, $student->id);
+        allow_override($otherid, $student->id);
         $this->assertTrue($DB->record_exists('role_allow_override', array('roleid'=>$otherid, 'allowoverride'=>$student->id)));
 
         // Test event trigger.
@@ -1013,7 +1003,7 @@ class core_accesslib_testcase extends advanced_testcase {
     /**
      * Test allowing of role switching.
      */
-    public function test_core_role_set_switch_allowed() {
+    public function test_allow_switch() {
         global $DB, $CFG;
 
         $this->resetAfterTest();
@@ -1022,7 +1012,7 @@ class core_accesslib_testcase extends advanced_testcase {
         $student = $DB->get_record('role', array('shortname'=>'student'), '*', MUST_EXIST);
 
         $this->assertFalse($DB->record_exists('role_allow_switch', array('roleid'=>$otherid, 'allowswitch'=>$student->id)));
-        core_role_set_switch_allowed($otherid, $student->id);
+        allow_switch($otherid, $student->id);
         $this->assertTrue($DB->record_exists('role_allow_switch', array('roleid'=>$otherid, 'allowswitch'=>$student->id)));
 
         // Test event trigger.
@@ -1034,35 +1024,6 @@ class core_accesslib_testcase extends advanced_testcase {
         $event = array_pop($events);
         $this->assertInstanceOf('\core\event\role_allow_switch_updated', $event);
         $mode = 'switch';
-        $baseurl = new moodle_url('/admin/roles/allow.php', array('mode' => $mode));
-        $expectedlegacylog = array(SITEID, 'role', 'edit allow ' . $mode, str_replace($CFG->wwwroot . '/', '', $baseurl));
-        $this->assertEventLegacyLogData($expectedlegacylog, $event);
-    }
-
-    /**
-     * Test allowing of role switching.
-     */
-    public function test_core_role_set_view_allowed() {
-        global $DB, $CFG;
-
-        $this->resetAfterTest();
-
-        $otherid = create_role('Other role', 'other', 'Some other role', '');
-        $student = $DB->get_record('role', array('shortname' => 'student'), '*', MUST_EXIST);
-
-        $this->assertFalse($DB->record_exists('role_allow_view', array('roleid' => $otherid, 'allowview' => $student->id)));
-        core_role_set_view_allowed($otherid, $student->id);
-        $this->assertTrue($DB->record_exists('role_allow_view', array('roleid' => $otherid, 'allowview' => $student->id)));
-
-        // Test event trigger.
-        $allowroleassignevent = \core\event\role_allow_view_updated::create(array('context' => context_system::instance()));
-        $sink = $this->redirectEvents();
-        $allowroleassignevent->trigger();
-        $events = $sink->get_events();
-        $sink->close();
-        $event = array_pop($events);
-        $this->assertInstanceOf('\core\event\role_allow_view_updated', $event);
-        $mode = 'view';
         $baseurl = new moodle_url('/admin/roles/allow.php', array('mode' => $mode));
         $expectedlegacylog = array(SITEID, 'role', 'edit allow ' . $mode, str_replace($CFG->wwwroot . '/', '', $baseurl));
         $this->assertEventLegacyLogData($expectedlegacylog, $event);
@@ -1324,74 +1285,6 @@ class core_accesslib_testcase extends advanced_testcase {
             }
             $this->assertSame("$name ($rolecounts[$roleid])", $nameswithcounts[$roleid]);
         }
-    }
-
-    /**
-     * Test getting of all overridable roles.
-     */
-    public function test_get_viewable_roles_course() {
-        global $DB;
-
-        $this->resetAfterTest();
-
-        $course = $this->getDataGenerator()->create_course();
-        $coursecontext = context_course::instance($course->id);
-
-        $teacherrole = $DB->get_record('role', array('shortname' => 'editingteacher'), '*', MUST_EXIST);
-        $teacher = $this->getDataGenerator()->create_user();
-        role_assign($teacherrole->id, $teacher->id, $coursecontext);
-
-        $studentrole = $DB->get_record('role', array('shortname' => 'student'), '*', MUST_EXIST);
-        $studentrolerename = (object) array('roleid' => $studentrole->id, 'name' => 'Učitel', 'contextid' => $coursecontext->id);
-        $DB->insert_record('role_names', $studentrolerename);
-
-        // By default teacher can see student.
-        $this->setUser($teacher);
-        $viewableroles = get_viewable_roles($coursecontext);
-        $this->assertContains($studentrolerename->name, array_values($viewableroles));
-        // Remove view permission.
-        $DB->delete_records('role_allow_view', array('roleid' => $teacherrole->id, 'allowview' => $studentrole->id));
-        $viewableroles = get_viewable_roles($coursecontext);
-        // Teacher can no longer see student role.
-        $this->assertNotContains($studentrolerename->name, array_values($viewableroles));
-        // Allow again teacher to view student.
-        core_role_set_view_allowed($teacherrole->id, $studentrole->id);
-        // Teacher can now see student role.
-        $viewableroles = get_viewable_roles($coursecontext);
-        $this->assertContains($studentrolerename->name, array_values($viewableroles));
-    }
-
-    /**
-     * Test getting of all overridable roles.
-     */
-    public function test_get_viewable_roles_system() {
-        global $DB;
-
-        $this->resetAfterTest();
-
-        $context = context_system::instance();
-
-        $teacherrole = $DB->get_record('role', array('shortname' => 'editingteacher'), '*', MUST_EXIST);
-        $teacher = $this->getDataGenerator()->create_user();
-        role_assign($teacherrole->id, $teacher->id, $context);
-
-        $studentrole = $DB->get_record('role', array('shortname' => 'student'), '*', MUST_EXIST);
-        $studentrolename = role_get_name($studentrole, $context);
-
-        // By default teacher can see student.
-        $this->setUser($teacher);
-        $viewableroles = get_viewable_roles($context);
-        $this->assertContains($studentrolename, array_values($viewableroles));
-        // Remove view permission.
-        $DB->delete_records('role_allow_view', array('roleid' => $teacherrole->id, 'allowview' => $studentrole->id));
-        $viewableroles = get_viewable_roles($context);
-        // Teacher can no longer see student role.
-        $this->assertNotContains($studentrolename, array_values($viewableroles));
-        // Allow again teacher to view student.
-        core_role_set_view_allowed($teacherrole->id, $studentrole->id);
-        // Teacher can now see student role.
-        $viewableroles = get_viewable_roles($context);
-        $this->assertContains($studentrolename, array_values($viewableroles));
     }
 
     /**
@@ -1659,8 +1552,6 @@ class core_accesslib_testcase extends advanced_testcase {
         $user3 = $this->getDataGenerator()->create_user();
         $user4 = $this->getDataGenerator()->create_user();
         role_assign($managerrole->id, $user4->id, $coursecontext->id);
-
-        $this->setAdminUser();
 
         $roles = get_user_roles_in_course($user1->id, $course->id);
         $this->assertEquals(1, preg_match_all('/,/', $roles, $matches));
@@ -3588,7 +3479,7 @@ class core_accesslib_testcase extends advanced_testcase {
         create_role('Custom role', 'customrole', 'Custom course role');
         $customrole = $DB->get_record('role', array('shortname' => 'customrole'), '*', MUST_EXIST);
         set_role_contextlevels($customrole->id, [CONTEXT_COURSE]);
-        core_role_set_assign_allowed($teacherrole->id, $customrole->id); // Allow teacher to assign the role in the course.
+        allow_assign($teacherrole->id, $customrole->id); // Allow teacher to assign the role in the course.
 
         // Set the site policy 'profileroles' to show student, teacher and non-editing teacher roles (i.e. not the custom role).
         $neteacherrole = $DB->get_record('role', array('shortname' => 'teacher'), '*', MUST_EXIST);

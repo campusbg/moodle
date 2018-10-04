@@ -69,8 +69,7 @@ class question_export_form extends moodleform {
         // Export options.
         $mform->addElement('header', 'general', get_string('general', 'form'));
 
-        $mform->addElement('questioncategory', 'category', get_string('exportcategory', 'question'),
-                array('contexts' => $contexts, 'top' => true));
+        $mform->addElement('questioncategory', 'category', get_string('exportcategory', 'question'), compact('contexts'));
         $mform->setDefault('category', $defaultcategory);
         $mform->addHelpButton('category', 'exportcategory', 'question');
 

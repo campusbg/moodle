@@ -177,10 +177,11 @@ class enrol_guest_plugin extends enrol_plugin {
                 } else {
                     $destination = "$CFG->wwwroot/course/view.php?id=$instance->courseid";
                 }
+		//echo 'prueba1'.$destination;
                 redirect($destination);
             }
         }
-
+print_r($OUTPUT);
         ob_start();
         $form->display();
         $output = ob_get_clean();

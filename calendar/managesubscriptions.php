@@ -61,7 +61,7 @@ if (!calendar_user_can_add_event($course)) {
     print_error('errorcannotimport', 'calendar');
 }
 
-$form = new \core_calendar\local\event\forms\managesubscriptions(null, ['courseid' => $course->id]);
+$form = new \core_calendar\local\event\forms\managesubscriptions();
 $form->set_data(array(
     'course' => $course->id
 ));
@@ -105,26 +105,26 @@ if (!empty($formdata)) {
     }
 }
 
-$types = calendar_get_allowed_event_types($courseid);
+$types = calendar_get_all_allowed_types();
 
 $searches = [];
 $params = [];
 
 $usedefaultfilters = true;
-if (!empty($courseid) && $courseid == SITEID && !empty($types['site'])) {
+if (!empty($courseid) && $courseid == SITEID && isset($types['site'])) {
     $searches[] = "(eventtype = 'site')";
     $searches[] = "(eventtype = 'user' AND userid = :userid)";
     $params['userid'] = $USER->id;
     $usedefaultfilters = false;
 }
 
-if (!empty($courseid) && !empty($types['course'])) {
+if (!empty($courseid) && isset($types['course']) && array_key_exists($courseid, $types['course'])) {
     $searches[] = "((eventtype = 'course' OR eventtype = 'group') AND courseid = :courseid)";
     $params += ['courseid' => $courseid];
     $usedefaultfilters = false;
 }
 
-if (!empty($categoryid) && !empty($types['category'])) {
+if (!empty($categoryid) && isset($types['category']) && array_key_exists($categoryid, $types['category'])) {
     $searches[] = "(eventtype = 'category' AND categoryid = :categoryid)";
     $params += ['categoryid' => $categoryid];
     $usedefaultfilters = false;
@@ -134,27 +134,19 @@ if ($usedefaultfilters) {
     $searches[] = "(eventtype = 'user' AND userid = :userid)";
     $params['userid'] = $USER->id;
 
-    if (!empty($types['site'])) {
+    if (isset($types['site'])) {
         $searches[] = "(eventtype = 'site' AND courseid  = :siteid)";
         $params += ['siteid' => SITEID];
     }
 
-    if (!empty($types['course'])) {
-        $courses = calendar_get_default_courses(null, 'id', true);
-        if (!empty($courses)) {
-            $courseids = array_map(function ($c) {
-                return $c->id;
-            }, $courses);
-
-            list($courseinsql, $courseparams) = $DB->get_in_or_equal($courseids, SQL_PARAMS_NAMED, 'course');
-            $searches[] = "((eventtype = 'course' OR eventtype = 'group') AND courseid {$courseinsql})";
-            $params += $courseparams;
-        }
+    if (isset($types['course'])) {
+        list($courseinsql, $courseparams) = $DB->get_in_or_equal(array_keys($types['course']), SQL_PARAMS_NAMED, 'course');
+        $searches[] = "((eventtype = 'course' OR eventtype = 'group') AND courseid {$courseinsql})";
+        $params += $courseparams;
     }
 
-    if (!empty($types['category'])) {
-        list($categoryinsql, $categoryparams) = $DB->get_in_or_equal(
-                array_keys(\coursecat::make_categories_list('moodle/category:manage')), SQL_PARAMS_NAMED, 'category');
+    if (isset($types['category'])) {
+        list($categoryinsql, $categoryparams) = $DB->get_in_or_equal(array_keys($types['category']), SQL_PARAMS_NAMED, 'category');
         $searches[] = "(eventtype = 'category' AND categoryid {$categoryinsql})";
         $params += $categoryparams;
     }

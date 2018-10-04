@@ -231,6 +231,7 @@ abstract class grade_object {
             $result[$instance->id] = $instance;
         }
         $rs->close();
+
         return $result;
     }
 

@@ -198,7 +198,7 @@ class provider implements
                     cm.id AS cmid
                   FROM {context} c
             INNER JOIN {course_modules} cm ON cm.id = c.instanceid AND c.contextlevel = :contextlevel
-            INNER JOIN {modules} m ON m.id = cm.module AND m.name = :modname
+            INNER JOIN {modules} m ON m.id = cm.module AND m.name = 'quiz'
             INNER JOIN {quiz} q ON q.id = cm.instance
              LEFT JOIN {quiz_overrides} qo ON qo.quiz = q.id AND qo.userid = :qouserid
              LEFT JOIN {quiz_grades} qg ON qg.quiz = q.id AND qg.userid = :qguserid
@@ -206,7 +206,6 @@ class provider implements
 
         $params = [
             'contextlevel'      => CONTEXT_MODULE,
-            'modname'           => 'quiz',
             'qguserid'          => $userid,
             'qouserid'          => $userid,
         ];
@@ -377,7 +376,7 @@ class provider implements
                     qa.*
                   FROM {context} c
                   JOIN {course_modules} cm ON cm.id = c.instanceid AND c.contextlevel = :contextlevel
-                  JOIN {modules} m ON m.id = cm.module AND m.name = 'quiz'
+                  JOIN {modules} m ON m.id = cm.module AND m.name = :modname
                   JOIN {quiz} q ON q.id = cm.instance
                   JOIN {quiz_attempts} qa ON qa.quiz = q.id
             " . $qubaid->from. "
@@ -390,6 +389,7 @@ class provider implements
         $params = array_merge(
                 [
                     'contextlevel'      => CONTEXT_MODULE,
+                    'modname'           => 'quiz',
                     'qauserid'          => $userid,
                 ],
                 $qubaid->from_where_params()

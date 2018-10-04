@@ -284,7 +284,7 @@ class message_sent_search_testcase extends advanced_testcase {
 
         $this->assertEquals(\core_search\manager::ACCESS_DELETED, $searcharea->check_access(-123));
 
-        \core_message\api::delete_message($user1->id, $message->id);
+        message_delete_message($message, $user1->id);
         $this->assertEquals(\core_search\manager::ACCESS_DELETED, $searcharea->check_access($messageid));
 
         $this->setUser($user2);

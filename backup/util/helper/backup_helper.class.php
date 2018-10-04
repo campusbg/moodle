@@ -33,8 +33,8 @@ abstract class backup_helper {
      * Given one backupid, create all the needed dirs to have one backup temp dir available
      */
     static public function check_and_create_backup_dir($backupid) {
-        $backupiddir = make_backup_temp_directory($backupid, false);
-        if (empty($backupiddir)) {
+        global $CFG;
+        if (!check_dir_exists($CFG->tempdir . '/backup/' . $backupid, true, true)) {
             throw new backup_helper_exception('cannot_create_backup_temp_dir');
         }
     }
@@ -49,8 +49,8 @@ abstract class backup_helper {
      * @param \core\progress\base $progress Optional progress reporting object
      */
     static public function clear_backup_dir($backupid, \core\progress\base $progress = null) {
-        $backupiddir = make_backup_temp_directory($backupid, false);
-        if (!self::delete_dir_contents($backupiddir, '', $progress)) {
+        global $CFG;
+        if (!self::delete_dir_contents($CFG->tempdir . '/backup/' . $backupid, '', $progress)) {
             throw new backup_helper_exception('cannot_empty_backup_temp_dir');
         }
         return true;
@@ -66,9 +66,9 @@ abstract class backup_helper {
      * @param \core\progress\base $progress Optional progress reporting object
      */
      static public function delete_backup_dir($backupid, \core\progress\base $progress = null) {
-         $backupiddir = make_backup_temp_directory($backupid, false);
+         global $CFG;
          self::clear_backup_dir($backupid, $progress);
-         return rmdir($backupiddir);
+         return rmdir($CFG->tempdir . '/backup/' . $backupid);
      }
 
      /**
@@ -157,12 +157,13 @@ abstract class backup_helper {
      * @param \core\progress\base $progress Optional progress reporting object
      */
     static public function delete_old_backup_dirs($deletefrom, \core\progress\base $progress = null) {
+        global $CFG;
+
         $status = true;
-        // Get files and directories in the backup temp dir without descend.
-        $backuptempdir = make_backup_temp_directory('');
-        $list = get_directory_list($backuptempdir, '', false, true, true);
+        // Get files and directories in the temp backup dir witout descend
+        $list = get_directory_list($CFG->tempdir . '/backup', '', false, true, true);
         foreach ($list as $file) {
-            $file_path = $backuptempdir . '/' . $file;
+            $file_path = $CFG->tempdir . '/backup/' . $file;
             $moddate = filemtime($file_path);
             if ($status && $moddate < $deletefrom) {
                 //If directory, recurse

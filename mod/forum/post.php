@@ -1042,13 +1042,12 @@ if (!empty($parent)) {
 } else {
     if (!empty($forum->intro)) {
         echo $OUTPUT->box(format_module_intro('forum', $forum, $cm->id), 'generalbox', 'intro');
-    }
-}
 
-// Call print disclosure for enabled plagiarism plugins.
-if (!empty($CFG->enableplagiarism)) {
-    require_once($CFG->libdir.'/plagiarismlib.php');
-    echo plagiarism_print_disclosure($cm->id);
+        if (!empty($CFG->enableplagiarism)) {
+            require_once($CFG->libdir.'/plagiarismlib.php');
+            echo plagiarism_print_disclosure($cm->id);
+        }
+    }
 }
 
 if (!empty($formheading)) {

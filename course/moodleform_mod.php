@@ -712,8 +712,7 @@ abstract class moodleform_mod extends moodleform {
             }
 
             // Completion expected at particular date? (For progress tracking)
-            $mform->addElement('date_time_selector', 'completionexpected', get_string('completionexpected', 'completion'),
-                    array('optional' => true));
+            $mform->addElement('date_selector', 'completionexpected', get_string('completionexpected', 'completion'), array('optional'=>true));
             $mform->addHelpButton('completionexpected', 'completionexpected', 'completion');
             $mform->disabledIf('completionexpected', 'completion', 'eq', COMPLETION_TRACKING_NONE);
         }
@@ -951,7 +950,6 @@ abstract class moodleform_mod extends moodleform {
         if (is_null($submitlabel)) {
             $submitlabel = get_string('savechangesanddisplay');
         }
-
         if (is_null($submit2label)) {
             $submit2label = get_string('savechangesandreturntocourse');
         }

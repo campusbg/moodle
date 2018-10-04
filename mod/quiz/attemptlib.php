@@ -135,9 +135,7 @@ class quiz {
      */
     public function preload_questions() {
         $this->questions = question_preload_questions(null,
-                'slot.maxmark, slot.id AS slotid, slot.slot, slot.page,
-                 slot.questioncategoryid AS randomfromcategory,
-                 slot.includingsubcategories AS randomincludingsubcategories',
+                'slot.maxmark, slot.id AS slotid, slot.slot, slot.page',
                 '{quiz_slots} slot ON slot.quizid = :quizid AND q.id = slot.questionid',
                 array('quizid' => $this->quiz->id), 'slot.slot');
     }
@@ -569,7 +567,7 @@ class quiz_attempt {
         $this->quba = question_engine::load_questions_usage_by_activity($this->attempt->uniqueid);
         $this->slots = $DB->get_records('quiz_slots',
                 array('quizid' => $this->get_quizid()), 'slot',
-                'slot, requireprevious, questionid, includingsubcategories');
+                'slot, requireprevious, questionid');
         $this->sections = array_values($DB->get_records('quiz_sections',
                 array('quizid' => $this->get_quizid()), 'firstslot'));
 
@@ -1874,14 +1872,12 @@ class quiz_attempt {
         if ($questiondata->qtype != 'random') {
             $newqusetionid = $questiondata->id;
         } else {
-            $tagids = quiz_retrieve_slot_tag_ids($this->slots[$slot]->id);
-
             $randomloader = new \core_question\bank\random_question_loader($qubaids, array());
             $newqusetionid = $randomloader->get_next_question_id($questiondata->category,
-                    (bool) $questiondata->questiontext, $tagids);
+                    (bool) $questiondata->questiontext);
             if ($newqusetionid === null) {
                 throw new moodle_exception('notenoughrandomquestions', 'quiz',
-                        $this->quizobj->view_url(), $questiondata);
+                        $quizobj->view_url(), $questiondata);
             }
         }
 

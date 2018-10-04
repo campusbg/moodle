@@ -223,18 +223,18 @@ class mod_assign_mod_form extends moodleform_mod {
     public function validation($data, $files) {
         $errors = parent::validation($data, $files);
 
-        if (!empty($data['allowsubmissionsfromdate']) && !empty($data['duedate'])) {
-            if ($data['duedate'] < $data['allowsubmissionsfromdate']) {
+        if ($data['allowsubmissionsfromdate'] && $data['duedate']) {
+            if ($data['allowsubmissionsfromdate'] > $data['duedate']) {
                 $errors['duedate'] = get_string('duedatevalidation', 'assign');
             }
         }
-        if (!empty($data['cutoffdate']) && !empty($data['duedate'])) {
-            if ($data['cutoffdate'] < $data['duedate'] ) {
+        if ($data['duedate'] && $data['cutoffdate']) {
+            if ($data['duedate'] > $data['cutoffdate']) {
                 $errors['cutoffdate'] = get_string('cutoffdatevalidation', 'assign');
             }
         }
-        if (!empty($data['allowsubmissionsfromdate']) && !empty($data['cutoffdate'])) {
-            if ($data['cutoffdate'] < $data['allowsubmissionsfromdate']) {
+        if ($data['allowsubmissionsfromdate'] && $data['cutoffdate']) {
+            if ($data['allowsubmissionsfromdate'] > $data['cutoffdate']) {
                 $errors['cutoffdate'] = get_string('cutoffdatefromdatevalidation', 'assign');
             }
         }

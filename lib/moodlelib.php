@@ -3601,38 +3601,25 @@ function get_extra_user_fields($context, $already = array()) {
         return array();
     }
 
-    // Split showuseridentity on comma (filter needed in case the showuseridentity is empty).
-    $extra = array_filter(explode(',', $CFG->showuseridentity));
-
+    // Split showuseridentity on comma.
+    if (empty($CFG->showuseridentity)) {
+        // Explode gives wrong result with empty string.
+        $extra = array();
+    } else {
+        $extra =  explode(',', $CFG->showuseridentity);
+    }
+    $renumber = false;
     foreach ($extra as $key => $field) {
         if (in_array($field, $already)) {
             unset($extra[$key]);
+            $renumber = true;
         }
     }
-
-    // If the identity fields are also among hidden fields, make sure the user can see them.
-    $hiddenfields = array_filter(explode(',', $CFG->hiddenuserfields));
-    $hiddenidentifiers = array_intersect($extra, $hiddenfields);
-
-    if ($hiddenidentifiers) {
-        if ($context->get_course_context(false)) {
-            // We are somewhere inside a course.
-            $canviewhiddenuserfields = has_capability('moodle/course:viewhiddenuserfields', $context);
-
-        } else {
-            // We are not inside a course.
-            $canviewhiddenuserfields = has_capability('moodle/user:viewhiddendetails', $context);
-        }
-
-        if (!$canviewhiddenuserfields) {
-            // Remove hidden identifiers from the list.
-            $extra = array_diff($extra, $hiddenidentifiers);
-        }
+    if ($renumber) {
+        // For consistency, if entries are removed from array, renumber it
+        // so they are numbered as you would expect.
+        $extra = array_merge($extra);
     }
-
-    // Re-index the entries.
-    $extra = array_values($extra);
-
     return $extra;
 }
 
@@ -3688,9 +3675,6 @@ function get_user_field_name($field) {
         }
         case 'msn' : {
             return get_string('msnid');
-        }
-        case 'picture' : {
-            return get_string('pictureofuser');
         }
     }
     // Otherwise just use the same lang string.
@@ -4073,6 +4057,9 @@ function delete_user(stdClass $user) {
     // Delete all grades - backup is kept in grade_grades_history table.
     grade_user_delete($user->id);
 
+    // Move unread messages from this user to read.
+    message_move_userfrom_unread2read($user->id);
+
     // TODO: remove from cohorts using standard API here.
 
     // Remove user tags.
@@ -4422,7 +4409,7 @@ function authenticate_user_login($username, $password, $ignorelockout=false, &$f
  * @return stdClass A {@link $USER} object - BC only, do not use
  */
 function complete_user_login($user) {
-    global $CFG, $DB, $USER, $SESSION;
+    global $CFG, $USER, $SESSION;
 
     \core\session\manager::login_user($user);
 
@@ -4445,16 +4432,6 @@ function complete_user_login($user) {
         )
     );
     $event->trigger();
-
-    // Queue migrating the messaging data, if we need to.
-    if (!get_user_preferences('core_message_migrate_data', false, $USER->id)) {
-        // Check if there are any legacy messages to migrate.
-        if (\core_message\helper::legacy_messages_exist($USER->id)) {
-            \core_message\task\migrate_message_data::queue_task($USER->id);
-        } else {
-            set_user_preference('core_message_migrate_data', true, $USER->id);
-        }
-    }
 
     if (isguestuser()) {
         // No need to continue when user is THE guest.
@@ -4718,14 +4695,6 @@ function get_complete_user_data($field, $value, $mnethostid = null) {
                 }
                 $user->groupmember[$group->courseid][$group->id] = $group->id;
             }
-        }
-    }
-
-    // Add cohort theme.
-    if (!empty($CFG->allowcohortthemes)) {
-        require_once($CFG->dirroot . '/cohort/lib.php');
-        if ($cohorttheme = cohort_get_user_cohort_theme($user->id)) {
-            $user->cohorttheme = $cohorttheme;
         }
     }
 
@@ -6158,7 +6127,7 @@ function setnew_password_and_mail($user, $fasthash = false) {
     $a->sitename    = format_string($site->fullname);
     $a->username    = $user->username;
     $a->newpassword = $newpassword;
-    $a->link        = $CFG->wwwroot .'/login/?lang='.$lang;
+    $a->link        = $CFG->wwwroot .'/login/';
     $a->signoff     = generate_email_signoff();
 
     $message = (string)new lang_string('newusernewpasswordtext', '', $a, $lang);
@@ -6949,7 +6918,6 @@ function get_string_manager($forcereload=false) {
                  $translist = array();
             } else {
                 $translist = explode(',', $CFG->langlist);
-                $translist = array_map('trim', $translist);
             }
 
             if (!empty($CFG->config_php_settings['customstringmanager'])) {
@@ -9280,8 +9248,8 @@ function get_performance_info() {
                     $mode = ' <span title="request cache">[r]</span>';
                     break;
             }
-            $html .= '<ul class="cache-definition-stats list-unstyled m-l-1 m-b-1 cache-mode-'.$modeclass.' card d-inline-block">';
-            $html .= '<li class="cache-definition-stats-heading p-t-1 card-header bg-dark bg-inverse font-weight-bold">' .
+            $html .= '<ul class="cache-definition-stats list-unstyled m-l-1 cache-mode-'.$modeclass.' card d-inline-block">';
+            $html .= '<li class="cache-definition-stats-heading p-t-1 card-header bg-inverse font-weight-bold">' .
                 $definition . $mode.'</li>';
             $text .= "$definition {";
             foreach ($details['stores'] as $store => $data) {
