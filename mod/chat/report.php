@@ -229,8 +229,18 @@ foreach ($messages as $message) {  // We are walking BACKWARDS through the messa
 
     $messagesleft --;              // Countdown.
 
+<<<<<<< HEAD
     if (!$lasttime) {
         $lasttime = $message->timestamp;
+=======
+    arsort($session->sessionusers);
+    foreach ($session->sessionusers as $sessionuser => $usermessagecount) {
+        if ($user = $DB->get_record('user', array('id' => $sessionuser))) {
+            $OUTPUT->user_picture($user, array('courseid' => $course->id));
+            echo '&nbsp;' . fullname($user, $canviewfullnames);
+            echo "&nbsp;($usermessagecount)<br />";
+        }
+>>>>>>> master
     }
     if (!$sessionend) {
         $sessionend = $message->timestamp;

@@ -47,7 +47,7 @@ Feature: Access visible and hidden cohorts
   Scenario: Teacher can see visible cohorts defined in the above contexts
     When I log in as "teacher"
     And I am on "Course 1" course homepage
-    And I navigate to "Enrolment methods" node in "Course administration > Users"
+    And I navigate to "Users > Enrolment methods" in current page administration
     And I select "Cohort sync" from the "Add method" singleselect
     Then the "Cohort" select box should contain "Cohort in category 1"
     And the "Cohort" select box should contain "System cohort"
@@ -59,10 +59,10 @@ Feature: Access visible and hidden cohorts
     And I set the field "Cohort" to "System cohort"
     And I press "Add method"
     And I am on "Course 1" course homepage
-    And I navigate to "Enrolled users" node in "Course administration > Users"
+    And I navigate to "Users > Enrolled users" in current page administration
     And I should see "student@example.com"
     And I am on "Course 1" course homepage
-    And I navigate to "Groups" node in "Course administration > Users"
+    And I navigate to "Users > Groups" in current page administration
     And I press "Auto-create groups"
     And the "Select members from cohort" select box should contain "Cohort in category 1"
     And the "Select members from cohort" select box should contain "System cohort"
@@ -75,7 +75,7 @@ Feature: Access visible and hidden cohorts
   Scenario: System manager can see all cohorts defined in the above contexts
     When I log in as "user1"
     And I am on "Course 1" course homepage
-    And I navigate to "Enrolment methods" node in "Course administration > Users"
+    And I navigate to "Users > Enrolment methods" in current page administration
     And I select "Cohort sync" from the "Add method" singleselect
     Then the "Cohort" select box should contain "Cohort in category 1"
     And the "Cohort" select box should contain "System cohort"
@@ -86,9 +86,10 @@ Feature: Access visible and hidden cohorts
     And the "Cohort" select box should contain "System empty cohort"
     And I set the field "Cohort" to "System cohort"
     And I press "Add method"
-    And I navigate to "Enrolled users" node in "Course administration > Users"
+    And I am on "Course 1" course homepage
+    And I navigate to "Users > Enrolled users" in current page administration
     And I should see "student@example.com"
-    And I navigate to "Groups" node in "Course administration > Users"
+    And I navigate to "Users > Groups" in current page administration
     And I press "Auto-create groups"
     And the "Select members from cohort" select box should contain "Cohort in category 1"
     And the "Select members from cohort" select box should contain "System cohort"
@@ -101,7 +102,7 @@ Feature: Access visible and hidden cohorts
   Scenario: Category manager can see all cohorts defined in his category and visible cohorts defined above
     When I log in as "user2"
     And I am on "Course 1" course homepage
-    And I navigate to "Enrolment methods" node in "Course administration > Users"
+    And I navigate to "Users > Enrolment methods" in current page administration
     And I select "Cohort sync" from the "Add method" singleselect
     Then the "Cohort" select box should contain "Cohort in category 1"
     And the "Cohort" select box should contain "System cohort"
@@ -112,9 +113,10 @@ Feature: Access visible and hidden cohorts
     And the "Cohort" select box should contain "System empty cohort"
     And I set the field "Cohort" to "System cohort"
     And I press "Add method"
-    And I navigate to "Enrolled users" node in "Course administration > Users"
+    And I am on "Course 1" course homepage
+    And I navigate to "Users > Enrolled users" in current page administration
     And I should see "student@example.com"
-    And I navigate to "Groups" node in "Course administration > Users"
+    And I navigate to "Users > Groups" in current page administration
     And I press "Auto-create groups"
     And the "Select members from cohort" select box should contain "Cohort in category 1"
     And the "Select members from cohort" select box should contain "System cohort"

@@ -702,8 +702,8 @@ echo '<script language=\'JavaScript\'> alert ("Matricula exitosa2222"); </script
      */
     protected function get_expirynotify_options() {
         $options = array(0 => get_string('no'),
-                         1 => get_string('expirynotifyenroller', 'core_enrol'),
-                         2 => get_string('expirynotifyall', 'core_enrol'));
+                         1 => get_string('expirynotifyenroller', 'enrol_self'),
+                         2 => get_string('expirynotifyall', 'enrol_self'));
         return $options;
     }
 

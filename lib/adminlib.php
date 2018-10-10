@@ -234,9 +234,6 @@ function uninstall_plugin($type, $name) {
     // delete the capabilities that were defined by this module
     capabilities_cleanup($component);
 
-    // remove event handlers and dequeue pending events
-    events_uninstall($component);
-
     // Delete all remaining files in the filepool owned by the component.
     $fs = get_file_storage();
     $fs->delete_component_files($component);
@@ -3614,14 +3611,15 @@ class admin_setting_configiplist extends admin_setting_configtextarea {
      */
     public function validate($data) {
         if(!empty($data)) {
-            $ips = explode("\n", $data);
+            $lines = explode("\n", $data);
         } else {
             return true;
         }
         $result = true;
         $badips = array();
-        foreach($ips as $ip) {
-            $ip = trim($ip);
+        foreach ($lines as $line) {
+            $tokens = explode('#', $line);
+            $ip = trim($tokens[0]);
             if (empty($ip)) {
                 continue;
             }
@@ -7970,9 +7968,7 @@ function admin_externalpage_setup($section, $extrabutton = '', array $extraurlpa
  * @return object admin_root object
  */
 function admin_get_root($reload=false, $requirefulltree=true) {
-    global $CFG, $DB, $OUTPUT;
-
-    static $ADMIN = NULL;
+    global $CFG, $DB, $OUTPUT, $ADMIN;
 
     if (is_null($ADMIN)) {
     // create the admin tree!
@@ -8183,6 +8179,15 @@ function admin_search_settings_html($query) {
             continue;
         }
 
+        // Locate the page in the admin root and populate its visiblepath attribute.
+        $path = array();
+        $located = $adminroot->locate($page->name, true);
+        if ($located) {
+            foreach ($located->visiblepath as $pathitem) {
+                array_unshift($path, (string) $pathitem);
+            }
+        }
+
         $sectionsettings = [];
         if (!empty($settings)) {
             foreach ($settings as $setting) {
@@ -8202,6 +8207,7 @@ function admin_search_settings_html($query) {
 
         $tpldata->results[] = (object) [
             'title' => $heading,
+            'path' => $path,
             'url' => $headingurl->out(false),
             'settings' => $sectionsettings
         ];

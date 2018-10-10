@@ -69,11 +69,10 @@ $string['messagepreferences'] = 'Message preferences';
 $string['message'] = 'Message';
 $string['messagepreferences'] = 'Message preferences';
 $string['messages'] = 'Messages';
-$string['messagingdisabled'] = 'Messaging is disabled on this site, emails will be sent instead';
+$string['messagingdatahasnotbeenmigrated'] = 'Your messages are temporarily unavailable due to upgrades in the messaging infrastructure. Please wait for them to be migrated.';
 $string['newonlymsg'] = 'Show only new';
 $string['newmessage'] = 'New message';
 $string['newmessagesearch'] = 'Select or search for a contact to send a new message.';
-$string['newsearch'] = 'New search';
 $string['noframesjs'] = 'Use more accessible interface';
 $string['nocontacts'] = 'No contacts';
 $string['nomessages'] = 'No messages';
@@ -95,6 +94,7 @@ $string['outputenabled'] = 'Output enabled';
 $string['outputnotavailable'] = 'Not available';
 $string['outputnotconfigured'] = 'Not configured';
 $string['permitted'] = 'Permitted';
+<<<<<<< HEAD
 $string['privacy:metadata:messages'] = 'Message/notifications';
 $string['privacy:metadata:messages:component'] = 'The component responsible for sending the message/notification';
 $string['privacy:metadata:messages:contexturl'] = 'The URL related to a notification';
@@ -112,10 +112,47 @@ $string['privacy:metadata:messages:timeuserfromdeleted'] = 'The date at which th
 $string['privacy:metadata:messages:timeusertodeleted'] = 'The date at which the message/notification was deleted by the receiver';
 $string['privacy:metadata:messages:useridfrom'] = 'The ID of the user who sent the notification';
 $string['privacy:metadata:messages:useridto'] = 'The ID of the user who received the notification';
+=======
+$string['privacy:metadata:messages'] = 'Messages';
+$string['privacy:metadata:messages:conversationid'] = 'The ID of the conversation';
+$string['privacy:metadata:messages:fullmessage'] = 'The full message';
+$string['privacy:metadata:messages:fullmessageformat'] = 'The format of the full message';
+$string['privacy:metadata:messages:fullmessagehtml'] = 'The HTML format of the full message';
+$string['privacy:metadata:messages:useridfrom'] = 'The ID of the user who sent the message';
+$string['privacy:metadata:messages:smallmessage'] = 'A small version of the message';
+$string['privacy:metadata:messages:subject'] = 'The subject of the message';
+$string['privacy:metadata:messages:timecreated'] = 'The time when the message was created';
+>>>>>>> master
 $string['privacy:metadata:message_contacts'] = 'The list of contacts';
 $string['privacy:metadata:message_contacts:blocked'] = 'Flag whether or not the user is blocked';
 $string['privacy:metadata:message_contacts:contactid'] = 'The ID of the user who is a contact';
 $string['privacy:metadata:message_contacts:userid'] = 'The ID of the user whose contact list we are viewing';
+<<<<<<< HEAD
+=======
+$string['privacy:metadata:message_conversation_members'] = 'The list of users in a conversation';
+$string['privacy:metadata:message_conversation_members:conversationid'] = 'The ID of the conversation';
+$string['privacy:metadata:message_conversation_members:timecreated'] = 'The time when the member was created';
+$string['privacy:metadata:message_conversation_members:userid'] = 'The ID of the user in a conversation';
+$string['privacy:metadata:message_user_actions'] = 'The list of message user actions';
+$string['privacy:metadata:message_user_actions:action'] = 'The action that was performed';
+$string['privacy:metadata:message_user_actions:messageid'] = 'The ID of the message this action belongs to';
+$string['privacy:metadata:message_user_actions:timecreated'] = 'The time when the action was created';
+$string['privacy:metadata:message_user_actions:userid'] = 'The ID of the user who performed this action';
+$string['privacy:metadata:notifications'] = 'Notifications';
+$string['privacy:metadata:notifications:component'] = 'The component responsible for sending the notification';
+$string['privacy:metadata:notifications:contexturl'] = 'The URL related to this notification';
+$string['privacy:metadata:notifications:contexturlname'] = 'The name of the context';
+$string['privacy:metadata:notifications:eventtype'] = 'The event type';
+$string['privacy:metadata:notifications:fullmessage'] = 'The full notification';
+$string['privacy:metadata:notifications:fullmessageformat'] = 'The notification format';
+$string['privacy:metadata:notifications:fullmessagehtml'] = 'The HTML of the notification';
+$string['privacy:metadata:notifications:smallmessage'] = 'The small message of the notification';
+$string['privacy:metadata:notifications:subject'] = 'The subject of the notification';
+$string['privacy:metadata:notifications:timeread'] = 'The time when the notification was read';
+$string['privacy:metadata:notifications:timecreated'] = 'The time when the notification was created';
+$string['privacy:metadata:notifications:useridfrom'] = 'The ID of the user who sent the notification';
+$string['privacy:metadata:notifications:useridto'] = 'The ID of the user who received the notification';
+>>>>>>> master
 $string['privacy:metadata:preference:core_message_settings'] = 'Settings related to messaging';
 $string['privacy:request:preference:set'] = 'The value of the setting \'{$a->name}\' was \'{$a->value}\'';
 $string['processorsettings'] = 'Processor settings';
@@ -162,23 +199,5 @@ $string['viewunreadmessageswith'] = 'View unread messages with {$a}';
 $string['writeamessage'] = 'Write a message...';
 $string['you'] = 'You:';
 
-// Deprecated since Moodle 3.2.
-$string['context'] = 'context';
-$string['discussion'] = 'Discussion';
-$string['emptysearchstring'] = 'You must search for something';
-$string['formorethan'] = 'For more than';
-$string['keywords'] = 'Keywords';
-$string['messagehistory'] = 'Message history';
-$string['newsearch'] = 'New search';
-$string['nosearchresults'] = 'There were no results from your search';
-$string['onlymycourses'] = 'Only in my courses';
-$string['pagerefreshes'] = 'This page refreshes automatically every {$a} seconds';
-$string['page-message-x'] = 'Any message pages';
-$string['recent'] = 'Recent';
-$string['savemysettings'] = 'Save my settings';
-$string['search'] = 'Search';
-$string['settingssaved'] = 'Your settings have been saved';
-$string['strftimedaydatetime'] = '%A, %d %B %Y, %I:%M %p';
-$string['timenosee'] = 'Minutes since I was last seen online';
-$string['timesent'] = 'Time sent';
-$string['userssearchresults'] = 'Users found: {$a}';
+// Deprecated since Moodle 3.6.
+$string['messagingdisabled'] = 'Messaging is disabled on this site, emails will be sent instead';

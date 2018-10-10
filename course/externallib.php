@@ -26,6 +26,8 @@
 
 defined('MOODLE_INTERNAL') || die;
 
+use core_course\external\course_summary_exporter;
+
 require_once("$CFG->libdir/externallib.php");
 
 /**
@@ -933,7 +935,11 @@ class core_course_external extends external_api {
 
                 // Make sure maxbytes are less then CFG->maxbytes.
                 if (array_key_exists('maxbytes', $course)) {
-                    $course['maxbytes'] = get_max_upload_file_size($CFG->maxbytes, $course['maxbytes']);
+                    // We allow updates back to 0 max bytes, a special value denoting the course uses the site limit.
+                    // Otherwise, either use the size specified, or cap at the max size for the course.
+                    if ($course['maxbytes'] != 0) {
+                        $course['maxbytes'] = get_max_upload_file_size($CFG->maxbytes, $course['maxbytes']);
+                    }
                 }
 
                 if (!empty($course['courseformatoptions'])) {
@@ -1833,8 +1839,7 @@ class core_course_external extends external_api {
      * @since Moodle 2.3
      */
     public static function create_categories($categories) {
-        global $CFG, $DB;
-        require_once($CFG->libdir . "/coursecatlib.php");
+        global $DB;
 
         $params = self::validate_parameters(self::create_categories_parameters(),
                         array('categories' => $categories));
@@ -1857,7 +1862,7 @@ class core_course_external extends external_api {
             // this will validate format and throw an exception if there are errors
             external_validate_format($category['descriptionformat']);
 
-            $newcategory = coursecat::create($category);
+            $newcategory = core_course_category::create($category);
             $context = context_coursecat::instance($newcategory->id);
 
             $createdcategories[] = array(
@@ -1923,8 +1928,7 @@ class core_course_external extends external_api {
      * @since Moodle 2.3
      */
     public static function update_categories($categories) {
-        global $CFG, $DB;
-        require_once($CFG->libdir . "/coursecatlib.php");
+        global $DB;
 
         // Validate parameters.
         $params = self::validate_parameters(self::update_categories_parameters(), array('categories' => $categories));
@@ -1932,7 +1936,7 @@ class core_course_external extends external_api {
         $transaction = $DB->start_delegated_transaction();
 
         foreach ($params['categories'] as $cat) {
-            $category = coursecat::get($cat['id']);
+            $category = core_course_category::get($cat['id']);
 
             $categorycontext = context_coursecat::instance($cat['id']);
             self::validate_context($categorycontext);
@@ -1991,7 +1995,6 @@ class core_course_external extends external_api {
     public static function delete_categories($categories) {
         global $CFG, $DB;
         require_once($CFG->dirroot . "/course/lib.php");
-        require_once($CFG->libdir . "/coursecatlib.php");
 
         // Validate parameters.
         $params = self::validate_parameters(self::delete_categories_parameters(), array('categories' => $categories));
@@ -1999,7 +2002,7 @@ class core_course_external extends external_api {
         $transaction = $DB->start_delegated_transaction();
 
         foreach ($params['categories'] as $category) {
-            $deletecat = coursecat::get($category['id'], MUST_EXIST);
+            $deletecat = core_course_category::get($category['id'], MUST_EXIST);
             $context = context_coursecat::instance($deletecat->id);
             require_capability('moodle/category:manage', $context);
             self::validate_context($context);
@@ -2017,9 +2020,9 @@ class core_course_external extends external_api {
                 // If the parent is the root, moving is not supported (because a course must always be inside a category).
                 // We must move to an existing category.
                 if (!empty($category['newparent'])) {
-                    $newparentcat = coursecat::get($category['newparent']);
+                    $newparentcat = core_course_category::get($category['newparent']);
                 } else {
-                    $newparentcat = coursecat::get($deletecat->parent);
+                    $newparentcat = core_course_category::get($deletecat->parent);
                 }
 
                 // This operation is not allowed. We must move contents to an existing category.
@@ -2215,18 +2218,18 @@ class core_course_external extends external_api {
     /**
      * Return the course information that is public (visible by every one)
      *
-     * @param  course_in_list $course        course in list object
+     * @param  core_course_list_element $course        course in list object
      * @param  stdClass       $coursecontext course context object
      * @return array the course information
      * @since  Moodle 3.2
      */
-    protected static function get_course_public_information(course_in_list $course, $coursecontext) {
+    protected static function get_course_public_information(core_course_list_element $course, $coursecontext) {
 
         static $categoriescache = array();
 
         // Category information.
         if (!array_key_exists($course->category, $categoriescache)) {
-            $categoriescache[$course->category] = coursecat::get($course->category, IGNORE_MISSING);
+            $categoriescache[$course->category] = core_course_category::get($course->category, IGNORE_MISSING);
         }
         $category = $categoriescache[$course->category];
 
@@ -2310,7 +2313,6 @@ class core_course_external extends external_api {
                                           $requiredcapabilities=array(),
                                           $limittoenrolled=0) {
         global $CFG;
-        require_once($CFG->libdir . '/coursecatlib.php');
 
         $warnings = array();
 
@@ -2353,8 +2355,8 @@ class core_course_external extends external_api {
         }
 
         // Search the courses.
-        $courses = coursecat::search_courses($searchcriteria, $options, $params['requiredcapabilities']);
-        $totalcount = coursecat::search_courses_count($searchcriteria, $options, $params['requiredcapabilities']);
+        $courses = core_course_category::search_courses($searchcriteria, $options, $params['requiredcapabilities']);
+        $totalcount = core_course_category::search_courses_count($searchcriteria, $options, $params['requiredcapabilities']);
 
         if (!empty($limittoenrolled)) {
             // Get the courses where the current user has access.
@@ -3001,7 +3003,6 @@ class core_course_external extends external_api {
      */
     public static function get_courses_by_field($field = '', $value = '') {
         global $DB, $CFG;
-        require_once($CFG->libdir . '/coursecatlib.php');
         require_once($CFG->libdir . '/filterlib.php');
 
         $params = self::validate_parameters(self::get_courses_by_field_parameters(),
@@ -3051,7 +3052,7 @@ class core_course_external extends external_api {
                 continue;
             }
             // Get the public course information, even if we are not enrolled.
-            $courseinlist = new course_in_list($course);
+            $courseinlist = new core_course_list_element($course);
             $coursesdata[$course->id] = self::get_course_public_information($courseinlist, $context);
 
             // Now, check if we have access to the course.
@@ -3534,5 +3535,115 @@ class core_course_external extends external_api {
      */
     public static function edit_section_returns() {
         return new external_value(PARAM_RAW, 'Additional data for javascript (JSON-encoded string)');
+    }
+
+    /**
+     * Returns description of method parameters
+     *
+     * @return external_function_parameters
+     */
+    public static function get_enrolled_courses_by_timeline_classification_parameters() {
+        return new external_function_parameters(
+            array(
+                'classification' => new external_value(PARAM_ALPHA, 'future, inprogress, or past'),
+                'limit' => new external_value(PARAM_INT, 'Result set limit', VALUE_DEFAULT, 0),
+                'offset' => new external_value(PARAM_INT, 'Result set offset', VALUE_DEFAULT, 0),
+                'sort' => new external_value(PARAM_TEXT, 'Sort string', VALUE_DEFAULT, null)
+            )
+        );
+    }
+
+    /**
+     * Get courses matching the given timeline classification.
+     *
+     * NOTE: The offset applies to the unfiltered full set of courses before the classification
+     * filtering is done.
+     * E.g.
+     * If the user is enrolled in 5 courses:
+     * c1, c2, c3, c4, and c5
+     * And c4 and c5 are 'future' courses
+     *
+     * If a request comes in for future courses with an offset of 1 it will mean that
+     * c1 is skipped (because the offset applies *before* the classification filtering)
+     * and c4 and c5 will be return.
+     *
+     * @param  string $classification past, inprogress, or future
+     * @param  int $limit Result set limit
+     * @param  int $offset Offset the full course set before timeline classification is applied
+     * @param  string $sort SQL sort string for results
+     * @return array list of courses and warnings
+     * @throws  invalid_parameter_exception
+     */
+    public static function get_enrolled_courses_by_timeline_classification(
+        string $classification,
+        int $limit = 0,
+        int $offset = 0,
+        string $sort = null
+    ) {
+        global $CFG, $PAGE, $USER;
+        require_once($CFG->dirroot . '/course/lib.php');
+
+        $params = self::validate_parameters(self::get_enrolled_courses_by_timeline_classification_parameters(),
+            array(
+                'classification' => $classification,
+                'limit' => $limit,
+                'offset' => $offset,
+                'sort' => $sort,
+            )
+        );
+
+        $classification = $params['classification'];
+        $limit = $params['limit'];
+        $offset = $params['offset'];
+        $sort = $params['sort'];
+
+        switch($classification) {
+            case COURSE_TIMELINE_PAST:
+                break;
+            case COURSE_TIMELINE_INPROGRESS:
+                break;
+            case COURSE_TIMELINE_FUTURE:
+                break;
+            default:
+                throw new invalid_parameter_exception('Invalid classification');
+        }
+
+        self::validate_context(context_user::instance($USER->id));
+
+        $requiredproperties = course_summary_exporter::define_properties();
+        $fields = join(',', array_keys($requiredproperties));
+        $courses = course_get_enrolled_courses_for_logged_in_user(0, $offset, $sort, $fields);
+        list($filteredcourses, $processedcount) = course_filter_courses_by_timeline_classification(
+            $courses,
+            $classification,
+            $limit
+        );
+
+        $renderer = $PAGE->get_renderer('core');
+        $formattedcourses = array_map(function($course) use ($renderer) {
+            context_helper::preload_from_record($course);
+            $context = context_course::instance($course->id);
+            $exporter = new course_summary_exporter($course, ['context' => $context]);
+            return $exporter->export($renderer);
+        }, $filteredcourses);
+
+        return [
+            'courses' => $formattedcourses,
+            'nextoffset' => $offset + $processedcount
+        ];
+    }
+
+    /**
+     * Returns description of method result value
+     *
+     * @return external_description
+     */
+    public static function get_enrolled_courses_by_timeline_classification_returns() {
+        return new external_single_structure(
+            array(
+                'courses' => new external_multiple_structure(course_summary_exporter::get_read_structure(), 'Course'),
+                'nextoffset' => new external_value(PARAM_INT, 'Offset for the next request')
+            )
+        );
     }
 }

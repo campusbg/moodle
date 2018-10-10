@@ -320,6 +320,19 @@ abstract class base {
     abstract public function get_document($record, $options = array());
 
     /**
+     * Returns the document title to display.
+     *
+     * Allow to customize the document title string to display.
+     *
+     * @param \core_search\document $doc
+     * @return string Document title to display in the search results page
+     */
+    public function get_document_display_title(\core_search\document $doc) {
+
+        return $doc->get('title');
+    }
+
+    /**
      * Return the context info required to index files for
      * this search area.
      *
@@ -473,5 +486,29 @@ abstract class base {
         }
 
         return [$sql, $params];
+    }
+
+    /**
+     * Gets a list of all contexts to reindex when reindexing this search area. The list should be
+     * returned in an order that is likely to be suitable when reindexing, for example with newer
+     * contexts first.
+     *
+     * The default implementation simply returns the system context, which will result in
+     * reindexing everything in normal date order (oldest first).
+     *
+     * @return \Iterator Iterator of contexts to reindex
+     */
+    public function get_contexts_to_reindex() {
+        return new \ArrayIterator([\context_system::instance()]);
+    }
+
+    /**
+     * Returns an icon instance for the document.
+     *
+     * @param \core_search\document $doc
+     * @return \core_search\document_icon
+     */
+    public function get_doc_icon(document $doc) : document_icon {
+        return new document_icon('i/empty');
     }
 }

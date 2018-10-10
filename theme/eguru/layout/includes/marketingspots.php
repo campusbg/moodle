@@ -98,10 +98,10 @@ function eguru_marketingspot() {
             $ref = 'https://campusbg.bancoguayaquil.com/campusbg/course/view.php?id=6';
             break;
         case 0:
-            $class = 'col-md-0';
+            $ref = 'col-md-0';
             break;
         default:
-            $class = 'col-md-3';
+            $ref = 'col-md-3';
             break;
     }
 
@@ -124,11 +124,11 @@ function eguru_marketingspot() {
 		
 			$spotimg = theme_eguru_get_filearea('mspot1title' . $i . 'image');
 
-			//$content .= html_writer::start_tag('a', array('href' => '//campusbg.bancoguayaquil.com/campusbg/?redirect=0'));
+			$content .= html_writer::start_tag('a', array('href' => $ref));
 			$content .= html_writer::start_tag('img', array('src' => '//campusbg.bancoguayaquil.com/campusbg/pluginfile.php/1/theme_eguru/spot'.$i.'marketing/1532644209/' . $spotimg , 'alt' => 'asd','width' => '138', 'heigth' => '138', 'href' => 'https://campusbg.bancoguayaquil.com/campusbg/?redirect=0'));
 			//$content .= html_writer::start_tag('a', array('style' => 'font-size: .2em; color: red;'));
 			//$content .= $spotimg;
-			//$content .= html_writer::end_tag('a');
+			$content .= html_writer::end_tag('a');
 			//$content .= html_writer::start_tag('img', array('src' => 'qqq' . $spotimg , 'alt' => 'asd','width' => '138', 'heigth' => '138', 'href' => 'https://campusbg.bancoguayaquil.com/campusbg/?redirect=0'));
 			//$content .= html_writer::end_tag('a');
                     $content .= html_writer::end_tag('div');

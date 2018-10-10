@@ -87,7 +87,6 @@ require_once($CFG->dirroot . '/mod/assign/feedbackplugin.php');
 require_once($CFG->dirroot . '/mod/assign/submissionplugin.php');
 require_once($CFG->dirroot . '/mod/assign/renderable.php');
 require_once($CFG->dirroot . '/mod/assign/gradingtable.php');
-require_once($CFG->libdir . '/eventslib.php');
 require_once($CFG->libdir . '/portfolio/caller.php');
 
 use \mod_assign\output\grading_app;
@@ -275,7 +274,10 @@ class assign {
     public function get_return_params() {
         global $PAGE;
 
-        $params = $PAGE->url->params();
+        $params = array();
+        if (!WS_SERVER) {
+            $params = $PAGE->url->params();
+        }
         unset($params['id']);
         unset($params['action']);
         return $params;
@@ -1329,9 +1331,9 @@ class assign {
             // Now process the event.
             if ($event->id) {
                 $calendarevent = calendar_event::load($event->id);
-                $calendarevent->update($event);
+                $calendarevent->update($event, false);
             } else {
-                calendar_event::create($event);
+                calendar_event::create($event, false);
             }
         } else {
             $DB->delete_records('event', array('modulename' => 'assign', 'instance' => $instance->id,
@@ -1350,9 +1352,9 @@ class assign {
             // Now process the event.
             if ($event->id) {
                 $calendarevent = calendar_event::load($event->id);
-                $calendarevent->update($event);
+                $calendarevent->update($event, false);
             } else {
-                calendar_event::create($event);
+                calendar_event::create($event, false);
             }
         } else {
             $DB->delete_records('event', array('modulename' => 'assign', 'instance' => $instance->id,
@@ -1504,8 +1506,9 @@ class assign {
         } else if ($plugin->is_visible() && $plugin->is_configurable()) {
             $name = $plugin->get_subtype() . '_' . $plugin->get_type() . '_enabled';
             $label = $plugin->get_name();
-            $label .= ' ' . $this->get_renderer()->help_icon('enabled', $plugin->get_subtype() . '_' . $plugin->get_type());
             $pluginsenabled[] = $mform->createElement('checkbox', $name, '', $label);
+            $helpicon = $this->get_renderer()->help_icon('enabled', $plugin->get_subtype() . '_' . $plugin->get_type());
+            $pluginsenabled[] = $mform->createElement('static', '', '', $helpicon);
 
             $default = get_config($plugin->get_subtype() . '_' . $plugin->get_type(), 'default');
             if ($plugin->get_config('enabled') !== false) {
@@ -3306,11 +3309,12 @@ class assign {
     /**
      * Does this user have grade permission for this assignment?
      *
+     * @param int|stdClass $user The object or id of the user who will do the editing (default to current user).
      * @return bool
      */
-    public function can_grade() {
+    public function can_grade($user = null) {
         // Permissions check.
-        if (!has_capability('mod/assign:grade', $this->context)) {
+        if (!has_capability('mod/assign:grade', $this->context, $user)) {
             return false;
         }
 
@@ -5315,11 +5319,15 @@ class assign {
     public function get_assign_grading_summary_renderable() {
 
         $instance = $this->get_instance();
+        $cm = $this->get_course_module();
 
         $draft = ASSIGN_SUBMISSION_STATUS_DRAFT;
         $submitted = ASSIGN_SUBMISSION_STATUS_SUBMITTED;
+        $isvisible = $cm->visible;
 
-        $activitygroup = groups_get_activity_group($this->get_course_module());
+        if ($activitygroup === null) {
+            $activitygroup = groups_get_activity_group($cm);
+        }
 
         if ($instance->teamsubmission) {
             $defaultteammembers = $this->get_submission_group_members(0, true);
@@ -5336,7 +5344,8 @@ class assign {
                                                   $this->count_submissions_need_grading(),
                                                   $instance->teamsubmission,
                                                   $warnofungroupedusers,
-                                                  $this->can_grade());
+                                                  $this->can_grade(),
+                                                  $isvisible);
         } else {
             // The active group has already been updated in groups_print_activity_menu().
             $countparticipants = $this->count_participants($activitygroup);
@@ -5351,8 +5360,8 @@ class assign {
                                                   $this->count_submissions_need_grading(),
                                                   $instance->teamsubmission,
                                                   false,
-                                                  $this->can_grade());
-
+                                                  $this->can_grade(),
+                                                  $isvisible);
         }
 
         return $summary;

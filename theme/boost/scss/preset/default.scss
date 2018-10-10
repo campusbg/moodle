@@ -184,8 +184,10 @@ $breadcrumb-divider-rtl: "/" !default;
     margin-top: ($spacer/2);
 }
 
-.form-inline .form-group {
-    margin-top: 0;
+// Reset the default styling back to the bootstrap defaults for
+// the secondary outline button because gray-200 is much too light
+// for an outline button.
+.btn-outline-secondary {
+    @include button-outline-variant($gray-600);
+    border-color: $border-color;
 }
-
-

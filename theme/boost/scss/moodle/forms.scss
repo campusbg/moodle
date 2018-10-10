@@ -27,6 +27,22 @@
     .custom-select {
         max-width: 100%;
     }
+    .form-group {
+        margin: 0.1rem 0.25rem 0.1rem 0;
+    }
+    br + label {
+        justify-content: flex-start;
+        width: 100%;
+    }
+}
+
+.unresponsive.mform .form-inline,
+.unresponsive.mform .form-inline label {
+    display: inline-flex;
+}
+
+#jump-to-activity.custom-select {
+    width: 100%;
 }
 
 .mform fieldset {

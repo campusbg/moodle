@@ -415,7 +415,7 @@ class core_role_define_role_table_advanced extends core_role_capability_table_wi
     }
 
     public function save_changes() {
-        global $DB, $CFG;
+        global $DB;
 
         if (!$this->roleid) {
             // Creating role.
@@ -429,8 +429,7 @@ class core_role_define_role_table_advanced extends core_role_capability_table_wi
             // the UI. It would be better to do this only when we know that fields affected are
             // updated. But thats getting into the weeds of the coursecat cache and role edits
             // should not be that frequent, so here is the ugly brutal approach.
-            require_once($CFG->libdir . '/coursecatlib.php');
-            coursecat::role_assignment_changed($this->role->id, context_system::instance());
+            core_course_category::role_assignment_changed($this->role->id, context_system::instance());
         }
 
         // Assignable contexts.

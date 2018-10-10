@@ -181,4 +181,15 @@ abstract class base_message extends \core_search\base {
 
         return $DB->get_recordset_select('message_read', $where, $params, 'timeread ASC');
     }
+
+    /**
+     * Returns an icon instance for the document.
+     *
+     * @param \core_search\document $doc
+     *
+     * @return \core_search\document_icon
+     */
+    public function get_doc_icon(\core_search\document $doc) : \core_search\document_icon {
+        return new \core_search\document_icon('t/message');
+    }
 }

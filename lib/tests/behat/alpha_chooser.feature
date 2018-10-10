@@ -263,11 +263,11 @@ Feature: Initials bar
     And I log out
     And I log in as "teacher"
     And I am on "Course 1" course homepage
-    And I navigate to "Activity completion" node in "Course administration > Reports"
-    And ".initialbarall.letter.active" "css_element" should exist in the ".initialbar.firstinitial" "css_element"
-    And ".initialbarall.letter.active" "css_element" should exist in the ".initialbar.lastinitial" "css_element"
-    And ".letter.active.B" "css_element" should not exist in the ".initialbar.firstinitial" "css_element"
-    And ".letter.active.A" "css_element" should not exist in the ".initialbar.lastinitial" "css_element"
+    And I navigate to "Reports > Activity completion" in current page administration
+    And ".initialbarall.page-item.active" "css_element" should exist in the ".initialbar.firstinitial" "css_element"
+    And ".initialbarall.page-item.active" "css_element" should exist in the ".initialbar.lastinitial" "css_element"
+    And ".page-item.active.B" "css_element" should not exist in the ".initialbar.firstinitial" "css_element"
+    And ".page-item.active.A" "css_element" should not exist in the ".initialbar.lastinitial" "css_element"
     And I should see "Astudent Astudent"
     And I should see "Bstudent Astudent"
     And I should see "Cstudent Cstudent"
@@ -288,11 +288,11 @@ Feature: Initials bar
     And I should see "Bstudent Astudent"
     And I should not see "Cstudent Cstudent"
     And I am on "Course 1" course homepage
-    And I navigate to "Activity completion" node in "Course administration > Reports"
-    And ".initialbarall.letter.active" "css_element" should not exist in the ".initialbar.firstinitial" "css_element"
-    And ".initialbarall.letter.active" "css_element" should not exist in the ".initialbar.lastinitial" "css_element"
-    And ".letter.active.B" "css_element" should exist in the ".initialbar.firstinitial" "css_element"
-    And ".letter.active.A" "css_element" should exist in the ".initialbar.lastinitial" "css_element"
+    And I navigate to "Reports > Activity completion" in current page administration
+    And ".initialbarall.page-item.active" "css_element" should not exist in the ".initialbar.firstinitial" "css_element"
+    And ".initialbarall.page-item.active" "css_element" should not exist in the ".initialbar.lastinitial" "css_element"
+    And ".page-item.active.B" "css_element" should exist in the ".initialbar.firstinitial" "css_element"
+    And ".page-item.active.A" "css_element" should exist in the ".initialbar.lastinitial" "css_element"
     And I should not see "Astudent Astudent"
     And I should see "Bstudent Astudent"
     And I should not see "Cstudent Cstudent"

@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 cancel_moving,mod_feedback
 cannotunmap,mod_feedback
 cannotmapfeedback,mod_feedback
@@ -26,3 +27,5 @@ stop,mod_feedback
 switch_group,mod_feedback
 viewcompleted,mod_feedback
 viewcompleted_help,mod_feedback
+=======
+>>>>>>> master

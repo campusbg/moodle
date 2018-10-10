@@ -135,14 +135,14 @@ class behat_course extends behat_base {
      */
     public function i_go_to_the_courses_management_page() {
 
-        $parentnodes = get_string('administrationsite') . ' > ' . get_string('courses', 'admin');
+        $parentnodes = get_string('courses', 'admin');
 
         // Go to home page.
         $this->execute("behat_general::i_am_on_homepage");
 
-        // Navigate to course management page via navigation block.
-        $this->execute("behat_navigation::i_navigate_to_node_in",
-            array(get_string('coursemgmt', 'admin'), $parentnodes)
+        // Navigate to course management via system administration.
+        $this->execute("behat_navigation::i_navigate_to_in_site_administration",
+            array($parentnodes . ' > ' . get_string('coursemgmt', 'admin'))
         );
 
     }
@@ -1476,7 +1476,7 @@ class behat_course extends behat_base {
         $this->i_select_category_in_the_management_interface($name);
 
         $this->execute('behat_forms::i_set_the_field_to',
-            array('menumovecategoriesto', coursecat::get(0)->get_formatted_name())
+            array('menumovecategoriesto', core_course_category::get(0)->get_formatted_name())
         );
 
         // Save event.

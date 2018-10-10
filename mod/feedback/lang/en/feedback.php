@@ -283,6 +283,7 @@ $string['use_one_line_for_each_value'] = 'Use one line for each answer!';
 $string['use_this_template'] = 'Use this template';
 $string['using_templates'] = 'Use a template';
 $string['vertical'] = 'Vertical';
+<<<<<<< HEAD
 // Deprecated since Moodle 3.1.
 $string['cannotmapfeedback'] = 'Database problem, unable to map feedback to course';
 $string['line_values'] = 'Rating';
@@ -315,3 +316,5 @@ $string['radiobutton_rated'] = 'Radiobutton (rated)';
 // Deprecated since Moodle 3.2.
 $string['start'] = 'Start';
 $string['stop'] = 'End';
+=======
+>>>>>>> master

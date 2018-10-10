@@ -445,6 +445,7 @@
         <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
         <FIELD NAME="subscriptionid" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false" COMMENT="The event_subscription id this event is associated with."/>
         <FIELD NAME="priority" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false" COMMENT="The event's display priority. For multiple events with the same module name, instance and eventtype (e.g. for group overrides), the one with the higher priority will be displayed."/>
+        <FIELD NAME="location" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="Event Location"/>
       </FIELDS>
       <KEYS>
         <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
@@ -1229,6 +1230,7 @@
         <FIELD NAME="stamp" TYPE="char" LENGTH="255" NOTNULL="true" SEQUENCE="false"/>
         <FIELD NAME="parent" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
         <FIELD NAME="sortorder" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="999" SEQUENCE="false"/>
+        <FIELD NAME="idnumber" TYPE="char" LENGTH="100" NOTNULL="false" SEQUENCE="false"/>
       </FIELDS>
       <KEYS>
         <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
@@ -1237,6 +1239,7 @@
       <INDEXES>
         <INDEX NAME="contextid" UNIQUE="false" FIELDS="contextid" COMMENT="links to context table"/>
         <INDEX NAME="contextidstamp" UNIQUE="true" FIELDS="contextid, stamp"/>
+        <INDEX NAME="contextididnumber" UNIQUE="true" FIELDS="contextid, idnumber"/>
       </INDEXES>
     </TABLE>
     <TABLE NAME="question" COMMENT="The questions themselves">
@@ -1260,6 +1263,7 @@
         <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="time that question was last modified"/>
         <FIELD NAME="createdby" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false" COMMENT="userid of person who created this question"/>
         <FIELD NAME="modifiedby" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false" COMMENT="userid of person who last edited this question"/>
+        <FIELD NAME="idnumber" TYPE="char" LENGTH="100" NOTNULL="false" SEQUENCE="false"/>
       </FIELDS>
       <KEYS>
         <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
@@ -1270,6 +1274,7 @@
       </KEYS>
       <INDEXES>
         <INDEX NAME="qtype" UNIQUE="false" FIELDS="qtype"/>
+        <INDEX NAME="categoryidnumber" UNIQUE="true" FIELDS="category, idnumber"/>
       </INDEXES>
     </TABLE>
     <TABLE NAME="question_answers" COMMENT="Answers, with a fractional grade (0-1) and feedback">

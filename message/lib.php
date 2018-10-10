@@ -22,8 +22,6 @@
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-require_once($CFG->libdir.'/eventslib.php');
-
 define('MESSAGE_SHORTLENGTH', 300);
 
 define('MESSAGE_HISTORY_ALL', 1);
@@ -219,14 +217,24 @@ function message_count_unread_messages($user1=null, $user2=null) {
         $user1 = $USER;
     }
 
+    $sql = "SELECT COUNT(m.id)
+              FROM {messages} m
+        INNER JOIN {message_conversations} mc
+                ON mc.id = m.conversationid
+        INNER JOIN {message_conversation_members} mcm
+                ON mcm.conversationid = mc.id
+         LEFT JOIN {message_user_actions} mua
+                ON (mua.messageid = m.id AND mua.userid = ? AND (mua.action = ? OR mua.action = ?))
+             WHERE mua.id is NULL
+               AND mcm.userid = ?";
+    $params = [$user1->id, \core_message\api::MESSAGE_ACTION_DELETED, \core_message\api::MESSAGE_ACTION_READ, $user1->id];
+
     if (!empty($user2)) {
-        return $DB->count_records_select('message', "useridto = ? AND useridfrom = ? AND notification = 0
-            AND timeusertodeleted = 0",
-            array($user1->id, $user2->id), "COUNT('id')");
+        $sql .= " AND m.useridfrom = ?";
+        $params[] = $user2->id;
     } else {
-        return $DB->count_records_select('message', "useridto = ? AND notification = 0
-            AND timeusertodeleted = 0",
-            array($user1->id), "COUNT('id')");
+        $sql .= " AND m.useridfrom <> ?";
+        $params[] = $user1->id;
     }
 }
 
@@ -968,11 +976,54 @@ function message_get_messages($useridto, $useridfrom = 0, $notifications = -1, $
     // Empty useridto means that we are going to retrieve messages send by the useridfrom to any user.
     if (empty($useridto)) {
         $userfields = get_all_user_name_fields(true, 'u', '', 'userto');
-        $joinsql = "JOIN {user} u ON u.id = mr.useridto";
-        $usersql = "mr.useridfrom = :useridfrom AND u.deleted = :deleted";
-        $params['useridfrom'] = $useridfrom;
+        $messageuseridtosql = 'u.id as useridto';
     } else {
         $userfields = get_all_user_name_fields(true, 'u', '', 'userfrom');
+        $messageuseridtosql = "$useridto as useridto";
+    }
+
+    // Create the SQL we will be using.
+    $messagesql = "SELECT mr.*, $userfields, 0 as notification, '' as contexturl, '' as contexturlname,
+                          mua.timecreated as timeusertodeleted, mua2.timecreated as timeread,
+                          mua3.timecreated as timeuserfromdeleted, $messageuseridtosql
+                     FROM {messages} mr
+               INNER JOIN {message_conversations} mc
+                       ON mc.id = mr.conversationid
+               INNER JOIN {message_conversation_members} mcm
+                       ON mcm.conversationid = mc.id ";
+
+    $notificationsql = "SELECT mr.*, $userfields, 1 as notification
+                          FROM {notifications} mr ";
+
+    $messagejoinsql = "LEFT JOIN {message_user_actions} mua
+                              ON (mua.messageid = mr.id AND mua.userid = mcm.userid AND mua.action = ?)
+                       LEFT JOIN {message_user_actions} mua2
+                              ON (mua2.messageid = mr.id AND mua2.userid = mcm.userid AND mua2.action = ?)
+                       LEFT JOIN {message_user_actions} mua3
+                              ON (mua3.messageid = mr.id AND mua3.userid = mr.useridfrom AND mua3.action = ?)";
+    $messagejoinparams = [\core_message\api::MESSAGE_ACTION_DELETED, \core_message\api::MESSAGE_ACTION_READ,
+        \core_message\api::MESSAGE_ACTION_DELETED];
+    $notificationsparams = [];
+
+    // If the 'useridto' value is empty then we are going to retrieve messages sent by the useridfrom to any user.
+    if (empty($useridto)) {
+        // Create the messaging query and params.
+        $messagesql .= "INNER JOIN {user} u
+                                ON u.id = mcm.userid
+                                $messagejoinsql
+                             WHERE mr.useridfrom = ?
+                               AND mr.useridfrom != mcm.userid
+                               AND u.deleted = 0 ";
+        $messageparams = array_merge($messagejoinparams, [$useridfrom]);
+
+        // Create the notifications query and params.
+        $notificationsql .= "INNER JOIN {user} u
+                                     ON u.id = mr.useridto
+                                  WHERE mr.useridfrom = ?
+                                    AND u.deleted = 0 ";
+        $notificationsparams[] = $useridfrom;
+    } else {
+        // Create the messaging query and params.
         // Left join because useridfrom may be -10 or -20 (no-reply and support users).
         $joinsql = "LEFT JOIN {user} u ON u.id = mr.useridfrom";
         $usersql = "mr.useridto = :useridto AND (u.deleted IS NULL OR u.deleted = :deleted)";

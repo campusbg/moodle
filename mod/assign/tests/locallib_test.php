@@ -1523,6 +1523,8 @@ class mod_assign_locallib_testcase extends advanced_testcase {
 
     public function test_cron_without_notifications() {
         $this->resetAfterTest();
+<<<<<<< HEAD
+=======
 
         // First run cron so there are no messages waiting to be sent (from other tests).
         cron_setup_user();
@@ -1549,6 +1551,52 @@ class mod_assign_locallib_testcase extends advanced_testcase {
         assign::cron();
         $messages = $sink->get_messages();
 
+        $this->assertEquals(0, count($messages));
+    }
+
+    public function test_cron_regraded() {
+        $this->resetAfterTest();
+>>>>>>> master
+
+        // First run cron so there are no messages waiting to be sent (from other tests).
+        cron_setup_user();
+        assign::cron();
+
+        $course = $this->getDataGenerator()->create_course();
+        $teacher = $this->getDataGenerator()->create_and_enrol($course, 'editingteacher');
+        $student = $this->getDataGenerator()->create_and_enrol($course, 'student');
+
+        // Now create an assignment and add some feedback.
+        $this->setUser($teacher);
+        $assign = $this->create_instance($course, [
+                'sendstudentnotifications' => 1,
+            ]);
+
+        $this->add_submission($student, $assign);
+        $this->submit_for_grading($student, $assign);
+<<<<<<< HEAD
+        $this->mark_submission($teacher, $assign, $student, 50.0, [
+                'sendstudentnotifications' => 0,
+            ]);
+
+=======
+        $this->mark_submission($teacher, $assign, $student, 50.0);
+
+        $this->expectOutputRegex('/Done processing 1 assignment submissions/');
+        cron_setup_user();
+        assign::cron();
+
+        // Regrade.
+        $this->mark_submission($teacher, $assign, $student, 50.0);
+
+        $this->expectOutputRegex('/Done processing 1 assignment submissions/');
+>>>>>>> master
+        cron_setup_user();
+        $sink = $this->redirectMessages();
+        assign::cron();
+        $messages = $sink->get_messages();
+
+<<<<<<< HEAD
         $this->assertEquals(0, count($messages));
     }
 
@@ -1586,6 +1634,8 @@ class mod_assign_locallib_testcase extends advanced_testcase {
         assign::cron();
         $messages = $sink->get_messages();
 
+=======
+>>>>>>> master
         $this->assertEquals(1, count($messages));
         $this->assertEquals(1, $messages[0]->notification);
         $this->assertEquals($assign->get_instance()->name, $messages[0]->contexturlname);
@@ -1691,9 +1741,15 @@ class mod_assign_locallib_testcase extends advanced_testcase {
         $teacher = $this->getDataGenerator()->create_and_enrol($course, 'editingteacher');
         $student = $this->getDataGenerator()->create_and_enrol($course, 'student');
         $otherstudent = $this->getDataGenerator()->create_and_enrol($course, 'student');
+<<<<<<< HEAD
 
         $assign = $this->create_instance($course);
 
+=======
+
+        $assign = $this->create_instance($course);
+
+>>>>>>> master
         $this->add_submission($student, $assign);
         $this->submit_for_grading($student, $assign);
         $this->mark_submission($teacher, $assign, $student, 50.0);
@@ -1707,6 +1763,7 @@ class mod_assign_locallib_testcase extends advanced_testcase {
         global $DB;
 
         $this->resetAfterTest();
+<<<<<<< HEAD
 
         $course = $this->getDataGenerator()->create_course();
         $teacher = $this->getDataGenerator()->create_and_enrol($course, 'editingteacher');
@@ -1714,11 +1771,25 @@ class mod_assign_locallib_testcase extends advanced_testcase {
 
         $assign = $this->create_instance($course);
 
+=======
+
+        $course = $this->getDataGenerator()->create_course();
+        $teacher = $this->getDataGenerator()->create_and_enrol($course, 'editingteacher');
+        $student = $this->getDataGenerator()->create_and_enrol($course, 'student');
+
+        $assign = $this->create_instance($course);
+
+>>>>>>> master
         $this->setUser($student);
         $this->assertEquals(false, $assign->can_grade());
 
         $this->setUser($teacher);
         $this->assertEquals(true, $assign->can_grade());
+
+        // Test the viewgrades capability for other users.
+        $this->setUser();
+        $this->assertTrue($assign->can_grade($teacher->id));
+        $this->assertFalse($assign->can_grade($student->id));
 
         // Test the viewgrades capability - without mod/assign:grade.
         $this->setUser($student);

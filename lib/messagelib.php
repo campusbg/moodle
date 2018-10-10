@@ -50,22 +50,12 @@ require_once(__DIR__ . '/../message/lib.php');
  * Note: processor failure is is not reported as false return value,
  *       earlier versions did not do it consistently either.
  *
- * @todo MDL-55449 Drop support for stdClass in Moodle 3.6
  * @category message
  * @param \core\message\message $eventdata information about the message (component, userfrom, userto, ...)
  * @return mixed the integer ID of the new message or false if there was a problem with submitted data
  */
-function message_send($eventdata) {
+function message_send(\core\message\message $eventdata) {
     global $CFG, $DB;
-
-    // TODO MDL-55449 Drop support for stdClass in Moodle 3.6.
-    if ($eventdata instanceof \stdClass) {
-        if (!isset($eventdata->courseid)) {
-            $eventdata->courseid = null;
-        }
-
-        debugging('eventdata as \stdClass is deprecated. Please use core\message\message instead.', DEBUG_DEVELOPER);
-    }
 
     //new message ID to return
     $messageid = false;
@@ -73,7 +63,8 @@ function message_send($eventdata) {
     // Fetch default (site) preferences
     $defaultpreferences = get_message_output_default_preferences();
     $preferencebase = $eventdata->component.'_'.$eventdata->name;
-    // If message provider is disabled then don't do any processing.
+
+    // If the message provider is disabled via preferences, then don't send the message.
     if (!empty($defaultpreferences->{$preferencebase.'_disable'})) {
         return $messageid;
     }
@@ -95,6 +86,20 @@ function message_send($eventdata) {
     }
     if (!$eventdata->userfrom) {
         debugging('Attempt to send msg from unknown user', DEBUG_NORMAL);
+        return false;
+    }
+
+    // If the provider's component is disabled or the user can't receive messages from it, don't send the message.
+    $isproviderallowed = false;
+    foreach (message_get_providers_for_user($eventdata->userto->id) as $provider) {
+        if ($provider->component === $eventdata->component && $provider->name === $eventdata->name) {
+            $isproviderallowed = true;
+            break;
+        }
+    }
+    if (!$isproviderallowed) {
+        debugging('Attempt to send msg from a provider '.$eventdata->component.'/'.$eventdata->name.
+            ' that is inactive or not allowed for the user id='.$eventdata->userto->id, DEBUG_NORMAL);
         return false;
     }
 

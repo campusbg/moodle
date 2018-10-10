@@ -1227,6 +1227,10 @@ function lti_get_custom_parameters($toolproxy, $tool, $params, $parameters) {
  * @return Parsed value of custom parameter
  */
 function lti_parse_custom_parameter($toolproxy, $tool, $params, $value, $islti2) {
+<<<<<<< HEAD
+=======
+    // This is required as {${$valarr[0]}->{$valarr[1]}}" may be using the USER or COURSE var.
+>>>>>>> master
     global $USER, $COURSE;
 
     if ($value) {

@@ -2871,5 +2871,174 @@ function xmldb_main_upgrade($oldversion) {
         upgrade_main_savepoint(true, 2017111303.08);
     }
 
+    // Automatically generated Moodle v3.5.0 release upgrade line.
+    // Put any upgrade step following this.
+
+    if ($oldversion < 2018062800.01) {
+        // Add foreign key fk_user to the comments table.
+        $table = new xmldb_table('comments');
+        $key = new xmldb_key('fk_user', XMLDB_KEY_FOREIGN, array('userid'), 'user', array('id'));
+        $dbman->add_key($table, $key);
+
+        upgrade_main_savepoint(true, 2018062800.01);
+    }
+
+    if ($oldversion < 2018062800.02) {
+        // Add composite index ix_concomitem to the table comments.
+        $table = new xmldb_table('comments');
+        $index = new xmldb_index('ix_concomitem', XMLDB_INDEX_NOTUNIQUE, array('contextid', 'commentarea', 'itemid'));
+
+        if (!$dbman->index_exists($table, $index)) {
+            $dbman->add_index($table, $index);
+        }
+
+        upgrade_main_savepoint(true, 2018062800.02);
+    }
+
+    if ($oldversion < 2018062800.03) {
+        // Define field location to be added to event.
+        $table = new xmldb_table('event');
+        $field = new xmldb_field('location', XMLDB_TYPE_TEXT, null, null, null, null, null, 'priority');
+
+        // Conditionally launch add field location.
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        // Main savepoint reached.
+        upgrade_main_savepoint(true, 2018062800.03);
+    }
+
+    if ($oldversion < 2018072500.00) {
+        // Find all duplicate top level categories per context.
+        $duplicates = $DB->get_records_sql("SELECT qc1.*
+                                              FROM {question_categories} qc1
+                                              JOIN {question_categories} qc2
+                                                ON qc1.contextid = qc2.contextid AND qc1.id <> qc2.id
+                                             WHERE qc1.parent = 0 AND qc2.parent = 0
+                                          ORDER BY qc1.contextid, qc1.id");
+
+        // For each context, let the first top category to remain as top category and make the rest its children.
+        $currentcontextid = 0;
+        $chosentopid = 0;
+        foreach ($duplicates as $duplicate) {
+            if ($currentcontextid != $duplicate->contextid) {
+                $currentcontextid = $duplicate->contextid;
+                $chosentopid = $duplicate->id;
+            } else {
+                $DB->set_field('question_categories', 'parent', $chosentopid, ['id' => $duplicate->id]);
+            }
+        }
+
+        // Main savepoint reached.
+        upgrade_main_savepoint(true, 2018072500.00);
+    }
+
+    if ($oldversion < 2018073000.00) {
+        // Main savepoint reached.
+        if (!file_exists($CFG->dirroot . '/admin/tool/assignmentupgrade/version.php')) {
+            unset_all_config_for_plugin('tool_assignmentupgrade');
+        }
+        upgrade_main_savepoint(true, 2018073000.00);
+    }
+
+    if ($oldversion < 2018083100.01) {
+        // Remove module associated blog posts for non-existent (deleted) modules.
+        $sql = "SELECT ba.contextid as modcontextid
+                  FROM {blog_association} ba
+                  JOIN {post} p
+                       ON p.id = ba.blogid
+             LEFT JOIN {context} c
+                       ON c.id = ba.contextid
+                 WHERE p.module = :module
+                       AND c.contextlevel IS NULL
+              GROUP BY ba.contextid";
+        if ($deletedmodules = $DB->get_records_sql($sql, array('module' => 'blog'))) {
+            foreach ($deletedmodules as $module) {
+                $assocblogids = $DB->get_fieldset_select('blog_association', 'blogid',
+                    'contextid = :contextid', ['contextid' => $module->modcontextid]);
+                list($sql, $params) = $DB->get_in_or_equal($assocblogids, SQL_PARAMS_NAMED);
+
+                $DB->delete_records_select('tag_instance', "itemid $sql", $params);
+                $DB->delete_records_select('post', "id $sql AND module = :module",
+                    array_merge($params, ['module' => 'blog']));
+                $DB->delete_records('blog_association', ['contextid' => $module->modcontextid]);
+            }
+        }
+        // Main savepoint reached.
+        upgrade_main_savepoint(true, 2018083100.01);
+    }
+
+    if ($oldversion < 2018091200.00) {
+        if (!file_exists($CFG->dirroot . '/cache/stores/memcache/settings.php')) {
+            unset_all_config_for_plugin('cachestore_memcache');
+        }
+
+        upgrade_main_savepoint(true, 2018091200.00);
+    }
+
+    if ($oldversion < 2018091400.01) {
+        if (!isset($CFG->messagingallusers)) {
+            // For existing instances, $CFG->messagingallusers would be same value $CFG->messaging has.
+            if (isset($CFG->messaging)) {
+                set_config('messagingallusers', $CFG->messaging);
+            } else {
+                // When $CFG->messaging is not set, default value for $CFG->messaging should be true,
+                // so $CFG->messagingallusers value should be true as well.
+                set_config('messagingallusers', 1);
+            }
+        }
+
+        // Main savepoint reached.
+        upgrade_main_savepoint(true, 2018091400.01);
+    }
+
+    if ($oldversion < 2018091700.01) {
+        // Remove unused setting.
+        unset_config('messaginghidereadnotifications');
+
+        // Main savepoint reached.
+        upgrade_main_savepoint(true, 2018091700.01);
+    }
+
+    // Add idnumber fields to question and question_category tables.
+    // This is done in four parts to aid error recovery during upgrade, should that occur.
+    if ($oldversion < 2018092100.01) {
+        $table = new xmldb_table('question');
+        $field = new xmldb_field('idnumber', XMLDB_TYPE_CHAR, '100', null, null, null, null, 'modifiedby');
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+        upgrade_main_savepoint(true, 2018092100.01);
+    }
+
+    if ($oldversion < 2018092100.02) {
+        $table = new xmldb_table('question');
+        $index = new xmldb_index('categoryidnumber', XMLDB_INDEX_UNIQUE, array('category, idnumber'));
+        if (!$dbman->index_exists($table, $index)) {
+            $dbman->add_index($table, $index);
+        }
+        upgrade_main_savepoint(true, 2018092100.02);
+    }
+
+    if ($oldversion < 2018092100.03) {
+        $table = new xmldb_table('question_categories');
+        $field = new xmldb_field('idnumber', XMLDB_TYPE_CHAR, '100', null, null, null, null, 'sortorder');
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+        upgrade_main_savepoint(true, 2018092100.03);
+    }
+
+    if ($oldversion < 2018092100.04) {
+        $table = new xmldb_table('question_categories');
+        $index = new xmldb_index('contextididnumber', XMLDB_INDEX_UNIQUE, array('contextid, idnumber'));
+        if (!$dbman->index_exists($table, $index)) {
+            $dbman->add_index($table, $index);
+        }
+        // Main savepoint reached.
+        upgrade_main_savepoint(true, 2018092100.04);
+    }
+
     return true;
 }

@@ -294,11 +294,19 @@ class mod_assign_lib_testcase extends advanced_testcase {
         $teacher = $this->getDataGenerator()->create_and_enrol($course, 'teacher');
         $student = $this->getDataGenerator()->create_and_enrol($course, 'student');
         $assign = $this->create_instance($course);
+<<<<<<< HEAD
 
         $this->add_submission($student, $assign);
         $this->submit_for_grading($student, $assign);
         $this->mark_submission($teacher, $assign, $student, 50.0);
 
+=======
+
+        $this->add_submission($student, $assign);
+        $this->submit_for_grading($student, $assign);
+        $this->mark_submission($teacher, $assign, $student, 50.0);
+
+>>>>>>> master
         $this->setUser($teacher);
         $data = $assign->get_user_grade($student->id, true);
         $data->grade = '50.5';
@@ -362,14 +370,31 @@ class mod_assign_lib_testcase extends advanced_testcase {
             ]);
 
         $instance = $assign->get_instance();
+<<<<<<< HEAD
         $eventparams = ['modulename' => 'assign', 'instance' => $instance->id];
+=======
+        $eventparams = [
+            'modulename' => 'assign',
+            'instance' => $instance->id,
+            'eventtype' => ASSIGN_EVENT_TYPE_DUE,
+            'groupid' => 0
+        ];
+>>>>>>> master
 
         // Make sure the calendar event for assignment 1 matches the initial due date.
         $eventtime = $DB->get_field('event', 'timestart', $eventparams, MUST_EXIST);
         $this->assertEquals($eventtime, $duedate);
 
         // Manually update assignment 1's due date.
+<<<<<<< HEAD
         $DB->update_record('assign', (object) ['id' => $instance->id, 'duedate' => $newduedate]);
+=======
+        $DB->update_record('assign', (object) [
+            'id' => $instance->id,
+            'duedate' => $newduedate,
+            'course' => $course->id
+        ]);
+>>>>>>> master
 
         // Then refresh the assignment events of assignment 1's course.
         $this->assertTrue(assign_refresh_events($course->id));
@@ -380,15 +405,34 @@ class mod_assign_lib_testcase extends advanced_testcase {
 
         // Create a second course and assignment.
         $othercourse = $this->getDataGenerator()->create_course();;
+<<<<<<< HEAD
         $otherassign = $this->create_instance($othercourse, ['duedate' => $duedate, 'course' => $othercourse->id]);
+=======
+        $otherassign = $this->create_instance($othercourse, [
+            'duedate' => $duedate,
+        ]);
+>>>>>>> master
         $otherinstance = $otherassign->get_instance();
 
         // Manually update assignment 1 and 2's due dates.
         $newduedate += DAYSECS;
+<<<<<<< HEAD
         $DB->update_record('assign', (object)['id' => $instance->id, 'duedate' => $newduedate]);
         $DB->update_record('assign', (object)['id' => $otherinstance->id, 'duedate' => $newduedate]);
+=======
+        $DB->update_record('assign', (object)[
+            'id' => $instance->id,
+            'duedate' => $newduedate,
+            'course' => $course->id
+        ]);
+        $DB->update_record('assign', (object)[
+            'id' => $otherinstance->id,
+            'duedate' => $newduedate,
+            'course' => $othercourse->id
+        ]);
+>>>>>>> master
 
-        // Refresh events of all courses.
+        // Refresh events of all courses and check the calendar events matches the new date.
         $this->assertTrue(assign_refresh_events());
 
         // Check the due date calendar event for assignment 1.
@@ -415,6 +459,9 @@ class mod_assign_lib_testcase extends advanced_testcase {
         $course = $this->getDataGenerator()->create_course();
         $teacher = $this->getDataGenerator()->create_and_enrol($course, 'teacher');
         $assign = $this->create_instance($course);
+<<<<<<< HEAD
+
+=======
 
         $this->setAdminUser();
 
@@ -426,12 +473,41 @@ class mod_assign_lib_testcase extends advanced_testcase {
         $this->assertTrue(mod_assign_core_calendar_is_event_visible($event));
     }
 
+    public function test_assign_core_calendar_is_event_visible_duedate_event_for_teacher() {
+        $this->resetAfterTest();
+        $course = $this->getDataGenerator()->create_course();
+        $teacher = $this->getDataGenerator()->create_and_enrol($course, 'teacher');
+        $assign = $this->create_instance($course);
+
+>>>>>>> master
+        $this->setAdminUser();
+
+        // Create a calendar event.
+        $event = $this->create_action_event($course, $assign, ASSIGN_EVENT_TYPE_DUE);
+<<<<<<< HEAD
+
+        // The teacher should see the due date event.
+        $this->setUser($teacher);
+        $this->assertTrue(mod_assign_core_calendar_is_event_visible($event));
+=======
+
+        // Now, log out.
+        $this->setUser();
+
+        // The teacher should see the due date event.
+        $this->assertTrue(mod_assign_core_calendar_is_event_visible($event, $teacher->id));
+>>>>>>> master
+    }
+
     public function test_assign_core_calendar_is_event_visible_duedate_event_as_student() {
         $this->resetAfterTest();
         $course = $this->getDataGenerator()->create_course();
         $teacher = $this->getDataGenerator()->create_and_enrol($course, 'teacher');
         $student = $this->getDataGenerator()->create_and_enrol($course, 'student');
         $assign = $this->create_instance($course, ['assignsubmission_onlinetext_enabled' => 1]);
+<<<<<<< HEAD
+
+=======
 
         $this->setAdminUser();
 
@@ -443,11 +519,40 @@ class mod_assign_lib_testcase extends advanced_testcase {
         $this->assertTrue(mod_assign_core_calendar_is_event_visible($event));
     }
 
+    public function test_assign_core_calendar_is_event_visible_duedate_event_for_student() {
+        $this->resetAfterTest();
+        $course = $this->getDataGenerator()->create_course();
+        $teacher = $this->getDataGenerator()->create_and_enrol($course, 'teacher');
+        $student = $this->getDataGenerator()->create_and_enrol($course, 'student');
+        $assign = $this->create_instance($course, ['assignsubmission_onlinetext_enabled' => 1]);
+
+>>>>>>> master
+        $this->setAdminUser();
+
+        // Create a calendar event.
+        $event = $this->create_action_event($course, $assign, ASSIGN_EVENT_TYPE_DUE);
+<<<<<<< HEAD
+
+        // The student should care about the due date event.
+        $this->setUser($student);
+        $this->assertTrue(mod_assign_core_calendar_is_event_visible($event));
+=======
+
+        // Now, log out.
+        $this->setUser();
+
+        // The student should care about the due date event.
+        $this->assertTrue(mod_assign_core_calendar_is_event_visible($event, $student->id));
+>>>>>>> master
+    }
+
     public function test_assign_core_calendar_is_event_visible_gradingduedate_event_as_teacher() {
         $this->resetAfterTest();
         $course = $this->getDataGenerator()->create_course();
         $teacher = $this->getDataGenerator()->create_and_enrol($course, 'teacher');
         $assign = $this->create_instance($course);
+<<<<<<< HEAD
+=======
 
         // Create a calendar event.
         $this->setAdminUser();
@@ -458,11 +563,39 @@ class mod_assign_lib_testcase extends advanced_testcase {
         $this->assertTrue(mod_assign_core_calendar_is_event_visible($event));
     }
 
+
+    public function test_assign_core_calendar_is_event_visible_gradingduedate_event_for_teacher() {
+        $this->resetAfterTest();
+        $course = $this->getDataGenerator()->create_course();
+        $teacher = $this->getDataGenerator()->create_and_enrol($course, 'teacher');
+        $assign = $this->create_instance($course);
+>>>>>>> master
+
+        // Create a calendar event.
+        $this->setAdminUser();
+        $event = $this->create_action_event($course, $assign, ASSIGN_EVENT_TYPE_GRADINGDUE);
+<<<<<<< HEAD
+
+        // The teacher should see the due date event.
+        $this->setUser($teacher);
+        $this->assertTrue(mod_assign_core_calendar_is_event_visible($event));
+=======
+
+        // Now, log out.
+        $this->setUser();
+
+        // The teacher should see the due date event.
+        $this->assertTrue(mod_assign_core_calendar_is_event_visible($event, $teacher->id));
+>>>>>>> master
+    }
+
     public function test_assign_core_calendar_is_event_visible_gradingduedate_event_as_student() {
         $this->resetAfterTest();
         $course = $this->getDataGenerator()->create_course();
         $student = $this->getDataGenerator()->create_and_enrol($course, 'student');
         $assign = $this->create_instance($course);
+<<<<<<< HEAD
+=======
 
         // Create a calendar event.
         $this->setAdminUser();
@@ -471,6 +604,32 @@ class mod_assign_lib_testcase extends advanced_testcase {
         // The student should not see the due date event.
         $this->setUser($student);
         $this->assertFalse(mod_assign_core_calendar_is_event_visible($event));
+    }
+
+
+    public function test_assign_core_calendar_is_event_visible_gradingduedate_event_for_student() {
+        $this->resetAfterTest();
+        $course = $this->getDataGenerator()->create_course();
+        $student = $this->getDataGenerator()->create_and_enrol($course, 'student');
+        $assign = $this->create_instance($course);
+>>>>>>> master
+
+        // Create a calendar event.
+        $this->setAdminUser();
+        $event = $this->create_action_event($course, $assign, ASSIGN_EVENT_TYPE_GRADINGDUE);
+<<<<<<< HEAD
+
+        // The student should not see the due date event.
+        $this->setUser($student);
+        $this->assertFalse(mod_assign_core_calendar_is_event_visible($event));
+=======
+
+        // Now, log out.
+        $this->setUser();
+
+        // The student should not see the due date event.
+        $this->assertFalse(mod_assign_core_calendar_is_event_visible($event, $student->id));
+>>>>>>> master
     }
 
     public function test_assign_core_calendar_provide_event_action_duedate_as_teacher() {
@@ -492,6 +651,40 @@ class mod_assign_lib_testcase extends advanced_testcase {
         $this->assertNull($actionevent);
     }
 
+<<<<<<< HEAD
+    public function test_assign_core_calendar_provide_event_action_duedate_as_student() {
+        $this->resetAfterTest();
+        $course = $this->getDataGenerator()->create_course();
+        $student = $this->getDataGenerator()->create_and_enrol($course, 'student');
+        $assign = $this->create_instance($course, ['assignsubmission_onlinetext_enabled' => 1]);
+=======
+    public function test_assign_core_calendar_provide_event_action_duedate_for_teacher() {
+        $this->resetAfterTest();
+        $course = $this->getDataGenerator()->create_course();
+        $teacher = $this->getDataGenerator()->create_and_enrol($course, 'teacher');
+        $assign = $this->create_instance($course);
+>>>>>>> master
+
+        // Create a calendar event.
+        $this->setAdminUser();
+        $event = $this->create_action_event($course, $assign, ASSIGN_EVENT_TYPE_DUE);
+
+<<<<<<< HEAD
+        // The student should see the event.
+        $this->setUser($student);
+        $factory = new \core_calendar\action_factory();
+=======
+        // Now, log out.
+        $this->setUser();
+
+        // Decorate action event for a teacher.
+        $factory = new \core_calendar\action_factory();
+        $actionevent = mod_assign_core_calendar_provide_event_action($event, $factory, $teacher->id);
+
+        // The teacher should not have an action for a due date event.
+        $this->assertNull($actionevent);
+    }
+
     public function test_assign_core_calendar_provide_event_action_duedate_as_student() {
         $this->resetAfterTest();
         $course = $this->getDataGenerator()->create_course();
@@ -505,7 +698,47 @@ class mod_assign_lib_testcase extends advanced_testcase {
         // The student should see the event.
         $this->setUser($student);
         $factory = new \core_calendar\action_factory();
+>>>>>>> master
         $actionevent = mod_assign_core_calendar_provide_event_action($event, $factory);
+
+        // Confirm the event was decorated.
+        $this->assertInstanceOf('\core_calendar\local\event\value_objects\action', $actionevent);
+        $this->assertEquals(get_string('addsubmission', 'assign'), $actionevent->get_name());
+        $this->assertInstanceOf('moodle_url', $actionevent->get_url());
+        $this->assertEquals(1, $actionevent->get_item_count());
+        $this->assertTrue($actionevent->is_actionable());
+    }
+
+<<<<<<< HEAD
+    public function test_assign_core_calendar_provide_event_action_gradingduedate_as_teacher() {
+        $this->resetAfterTest();
+        $course = $this->getDataGenerator()->create_course();
+        $teacher = $this->getDataGenerator()->create_and_enrol($course, 'teacher');
+        $assign = $this->create_instance($course);
+
+        // Create a calendar event.
+        $this->setAdminUser();
+        $event = $this->create_action_event($course, $assign, ASSIGN_EVENT_TYPE_GRADINGDUE);
+
+        $this->setUser($teacher);
+        $factory = new \core_calendar\action_factory();
+=======
+    public function test_assign_core_calendar_provide_event_action_duedate_for_student() {
+        $this->resetAfterTest();
+        $course = $this->getDataGenerator()->create_course();
+        $student = $this->getDataGenerator()->create_and_enrol($course, 'student');
+        $assign = $this->create_instance($course, ['assignsubmission_onlinetext_enabled' => 1]);
+
+        // Create a calendar event.
+        $this->setAdminUser();
+        $event = $this->create_action_event($course, $assign, ASSIGN_EVENT_TYPE_DUE);
+
+        // Now, log out.
+        $this->setUser();
+
+        // Decorate action event for a student.
+        $factory = new \core_calendar\action_factory();
+        $actionevent = mod_assign_core_calendar_provide_event_action($event, $factory, $student->id);
 
         // Confirm the event was decorated.
         $this->assertInstanceOf('\core_calendar\local\event\value_objects\action', $actionevent);
@@ -527,6 +760,7 @@ class mod_assign_lib_testcase extends advanced_testcase {
 
         $this->setUser($teacher);
         $factory = new \core_calendar\action_factory();
+>>>>>>> master
         $actionevent = mod_assign_core_calendar_provide_event_action($event, $factory);
 
         // Confirm the event was decorated.
@@ -537,6 +771,34 @@ class mod_assign_lib_testcase extends advanced_testcase {
         $this->assertTrue($actionevent->is_actionable());
     }
 
+<<<<<<< HEAD
+=======
+    public function test_assign_core_calendar_provide_event_action_gradingduedate_for_teacher() {
+        $this->resetAfterTest();
+        $course = $this->getDataGenerator()->create_course();
+        $teacher = $this->getDataGenerator()->create_and_enrol($course, 'teacher');
+        $assign = $this->create_instance($course);
+
+        // Create a calendar event.
+        $this->setAdminUser();
+        $event = $this->create_action_event($course, $assign, ASSIGN_EVENT_TYPE_GRADINGDUE);
+
+        // Now, log out.
+        $this->setUser();
+
+        // Decorate action event for a teacher.
+        $factory = new \core_calendar\action_factory();
+        $actionevent = mod_assign_core_calendar_provide_event_action($event, $factory, $teacher->id);
+
+        // Confirm the event was decorated.
+        $this->assertInstanceOf('\core_calendar\local\event\value_objects\action', $actionevent);
+        $this->assertEquals(get_string('grade'), $actionevent->get_name());
+        $this->assertInstanceOf('moodle_url', $actionevent->get_url());
+        $this->assertEquals(0, $actionevent->get_item_count());
+        $this->assertTrue($actionevent->is_actionable());
+    }
+
+>>>>>>> master
     public function test_assign_core_calendar_provide_event_action_gradingduedate_as_student() {
         $this->resetAfterTest();
         $course = $this->getDataGenerator()->create_course();
@@ -550,6 +812,34 @@ class mod_assign_lib_testcase extends advanced_testcase {
         $this->setUser($student);
         $factory = new \core_calendar\action_factory();
         $actionevent = mod_assign_core_calendar_provide_event_action($event, $factory);
+<<<<<<< HEAD
+=======
+
+        // Confirm the event was decorated.
+        $this->assertInstanceOf('\core_calendar\local\event\value_objects\action', $actionevent);
+        $this->assertEquals(get_string('grade'), $actionevent->get_name());
+        $this->assertInstanceOf('moodle_url', $actionevent->get_url());
+        $this->assertEquals(0, $actionevent->get_item_count());
+        $this->assertFalse($actionevent->is_actionable());
+    }
+
+    public function test_assign_core_calendar_provide_event_action_gradingduedate_for_student() {
+        $this->resetAfterTest();
+        $course = $this->getDataGenerator()->create_course();
+        $student = $this->getDataGenerator()->create_and_enrol($course, 'student');
+        $assign = $this->create_instance($course);
+
+        // Create a calendar event.
+        $this->setAdminUser();
+        $event = $this->create_action_event($course, $assign, ASSIGN_EVENT_TYPE_GRADINGDUE);
+
+        // Now, log out.
+        $this->setUser();
+
+        // Decorate action event for a student.
+        $factory = new \core_calendar\action_factory();
+        $actionevent = mod_assign_core_calendar_provide_event_action($event, $factory, $student->id);
+>>>>>>> master
 
         // Confirm the event was decorated.
         $this->assertInstanceOf('\core_calendar\local\event\value_objects\action', $actionevent);
@@ -577,10 +867,45 @@ class mod_assign_lib_testcase extends advanced_testcase {
         // Submit as the student.
         $this->add_submission($student, $assign);
         $this->submit_for_grading($student, $assign);
+<<<<<<< HEAD
+=======
 
         // Confirm there was no event to action.
         $factory = new \core_calendar\action_factory();
         $actionevent = mod_assign_core_calendar_provide_event_action($event, $factory);
+        $this->assertNull($actionevent);
+    }
+
+    public function test_assign_core_calendar_provide_event_action_duedate_for_student_submitted() {
+        $this->resetAfterTest();
+        $course = $this->getDataGenerator()->create_course();
+        $teacher = $this->getDataGenerator()->create_and_enrol($course, 'teacher');
+        $student = $this->getDataGenerator()->create_and_enrol($course, 'student');
+        $assign = $this->create_instance($course, ['assignsubmission_onlinetext_enabled' => 1]);
+
+        $this->setAdminUser();
+
+        // Create a calendar event.
+        $event = $this->create_action_event($course, $assign, ASSIGN_EVENT_TYPE_DUE);
+>>>>>>> master
+
+        // Confirm there was no event to action.
+        $factory = new \core_calendar\action_factory();
+<<<<<<< HEAD
+        $actionevent = mod_assign_core_calendar_provide_event_action($event, $factory);
+=======
+
+        // Submit as the student.
+        $this->add_submission($student, $assign);
+        $this->submit_for_grading($student, $assign);
+
+        // Now, log out.
+        $this->setUser();
+
+        // Confirm there was no event to action.
+        $factory = new \core_calendar\action_factory();
+        $actionevent = mod_assign_core_calendar_provide_event_action($event, $factory, $student->id);
+>>>>>>> master
         $this->assertNull($actionevent);
     }
 
@@ -1255,5 +1580,30 @@ class mod_assign_lib_testcase extends advanced_testcase {
         // Confirm that a module updated event is fired when the module
         // is changed.
         $this->assertNotEmpty($moduleupdatedevents);
+    }
+
+    /**
+     * A user who does not have capabilities to add events to the calendar should be able to create an assignment.
+     */
+    public function test_creation_with_no_calendar_capabilities() {
+        $this->resetAfterTest();
+        $course = self::getDataGenerator()->create_course();
+        $context = context_course::instance($course->id);
+        $user = self::getDataGenerator()->create_and_enrol($course, 'editingteacher');
+        $roleid = self::getDataGenerator()->create_role();
+        self::getDataGenerator()->role_assign($roleid, $user->id, $context->id);
+        assign_capability('moodle/calendar:manageentries', CAP_PROHIBIT, $roleid, $context, true);
+        $generator = self::getDataGenerator()->get_plugin_generator('mod_assign');
+        // Create an instance as a user without the calendar capabilities.
+        $this->setUser($user);
+        $time = time();
+        $params = array(
+            'course' => $course->id,
+            'allowsubmissionsfromdate' => $time,
+            'duedate' => $time + 500,
+            'cutoffdate' => $time + 600,
+            'gradingduedate' => $time + 700,
+        );
+        $generator->create_instance($params);
     }
 }

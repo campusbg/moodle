@@ -16,6 +16,10 @@
       </FIELDS>
       <KEYS>
         <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+<<<<<<< HEAD
+=======
+        <KEY NAME="questionusageid-slot" TYPE="foreign" FIELDS="questionusageid, slot" REFTABLE="question_attempts" REFFIELDS="questionusageid, slot"/>
+>>>>>>> master
       </KEYS>
     </TABLE>
   </TABLES>

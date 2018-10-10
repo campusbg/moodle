@@ -163,6 +163,7 @@ EOD;
             if ($include && !empty($info)) {
                 $include = $info->is_user_visible($info->get_course_module(), $user->id);
             }
+<<<<<<< HEAD
             if ($include) {
                 $member = new \stdClass();
                 if (in_array('User.id', $enabledcapabilities)) {
@@ -170,6 +171,60 @@ EOD;
                 }
                 if (in_array('Person.sourcedId', $enabledcapabilities)) {
                     $member->sourcedId = format_string($user->idnumber);
+=======
+            $isallowedlticonfig = self::is_allowed_field_set($toolconfig, $instanceconfig,
+                                    ['name' => 'lti_sendname', 'email' => 'lti_sendemailaddr']);
+
+            $includedcapabilities = [
+                'User.id'              => ['type' => 'id',
+                                            'member.field' => 'userId',
+                                            'source.value' => $user->id],
+                'Person.sourcedId'     => ['type' => 'id',
+                                            'member.field' => 'sourcedId',
+                                            'source.value' => format_string($user->idnumber)],
+                'Person.name.full'     => ['type' => 'name',
+                                            'member.field' => 'name',
+                                            'source.value' => format_string("{$user->firstname} {$user->lastname}")],
+                'Person.name.given'    => ['type' => 'name',
+                                            'member.field' => 'givenName',
+                                            'source.value' => format_string($user->firstname)],
+                'Person.name.family'   => ['type' => 'name',
+                                            'member.field' => 'familyName',
+                                            'source.value' => format_string($user->lastname)],
+                'Person.email.primary' => ['type' => 'email',
+                                            'member.field' => 'email',
+                                            'source.value' => format_string($user->email)]
+            ];
+
+            if (!is_null($lti)) {
+                $message = new \stdClass();
+                $message->message_type = 'basic-lti-launch-request';
+                $conditions = array('courseid' => $contextid, 'itemtype' => 'mod',
+                        'itemmodule' => 'lti', 'iteminstance' => $lti->id);
+
+                if (!empty($lti->servicesalt) && $DB->record_exists('grade_items', $conditions)) {
+                    $message->lis_result_sourcedid = json_encode(lti_build_sourcedid($lti->id,
+                                                                                     $user->id,
+                                                                                     $lti->servicesalt,
+                                                                                     $lti->typeid));
+                    // Not per specification but added to comply with earlier version of the service.
+                    $member->resultSourcedId = $message->lis_result_sourcedid;
+                }
+                $membership->message = [$message];
+            }
+
+            foreach ($includedcapabilities as $capabilityname => $capability) {
+                if ($islti2) {
+                    if (!in_array($capabilityname, $enabledcapabilities)) {
+                        continue;
+                    }
+                } else {
+                    if (($capability['type'] === 'id')
+                     || ($capability['type'] === 'name' && $isallowedlticonfig['name'])
+                     || ($capability['type'] === 'email' && $isallowedlticonfig['email'])) {
+                        $member->{$capability['member.field']} = $capability['source.value'];
+                    }
+>>>>>>> master
                 }
                 if (in_array('Person.name.full', $enabledcapabilities)) {
                     $member->name = format_string("{$user->firstname} {$user->lastname}");

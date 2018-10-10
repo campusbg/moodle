@@ -53,6 +53,7 @@ class core_question_generator extends component_generator_base {
             'stamp'      => make_unique_id_code(),
             'parent'     => 0,
             'sortorder'  => 999,
+            'idnumber'   => null
         );
 
         $record = $this->datagenerator->combine_defaults_and_record($defaults, $record);
@@ -82,6 +83,7 @@ class core_question_generator extends component_generator_base {
         $question->category  = $fromform->category;
         $question->qtype     = $qtype;
         $question->createdby = 0;
+        $question->idnumber = null;
 
         return $this->update_question($question, $which, $overrides);
     }

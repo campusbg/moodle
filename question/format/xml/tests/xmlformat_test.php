@@ -48,6 +48,7 @@ class qformat_xml_test extends question_testcase {
         $q = new stdClass();
         $q->id = 0;
         $q->contextid = 0;
+        $q->idnumber = null;
         $q->category = 0;
         $q->parent = 0;
         $q->questiontextformat = FORMAT_HTML;
@@ -340,6 +341,7 @@ END;
         $qdata->length = 0;
         $qdata->penalty = 0;
         $qdata->hidden = 0;
+        $qdata->idnumber = null;
 
         $exporter = new qformat_xml();
         $xml = $exporter->writequestion($qdata);
@@ -358,6 +360,7 @@ END;
     <defaultgrade>0</defaultgrade>
     <penalty>0</penalty>
     <hidden>0</hidden>
+    <idnumber></idnumber>
   </question>
 ';
 
@@ -485,6 +488,7 @@ END;
         $qdata->length = 1;
         $qdata->penalty = 0;
         $qdata->hidden = 0;
+        $qdata->idnumber = null;
         $qdata->options = new stdClass();
         $qdata->options->id = 456;
         $qdata->options->questionid = 123;
@@ -514,6 +518,7 @@ END;
     <defaultgrade>1</defaultgrade>
     <penalty>0</penalty>
     <hidden>0</hidden>
+    <idnumber></idnumber>
     <responseformat>monospaced</responseformat>
     <responserequired>0</responserequired>
     <responsefieldlines>42</responsefieldlines>
@@ -647,6 +652,7 @@ END;
         $qdata->length = 1;
         $qdata->penalty = 0.3333333;
         $qdata->hidden = 0;
+        $qdata->idnumber = null;
 
         $qdata->options = new stdClass();
         $qdata->options->shuffleanswers = 1;
@@ -707,6 +713,7 @@ END;
     <defaultgrade>1</defaultgrade>
     <penalty>0.3333333</penalty>
     <hidden>0</hidden>
+    <idnumber></idnumber>
     <shuffleanswers>true</shuffleanswers>
     <correctfeedback format="html">
       <text>Well done.</text>
@@ -878,6 +885,7 @@ END;
         $qdata->length = 1;
         $qdata->penalty = 0.3333333;
         $qdata->hidden = 0;
+        $qdata->idnumber = null;
 
         $qdata->options = new stdClass();
         $qdata->options->single = 0;
@@ -920,6 +928,7 @@ END;
     <defaultgrade>2</defaultgrade>
     <penalty>0.3333333</penalty>
     <hidden>0</hidden>
+    <idnumber></idnumber>
     <single>false</single>
     <shuffleanswers>false</shuffleanswers>
     <answernumbering>abc</answernumbering>
@@ -1051,6 +1060,7 @@ END;
         $qdata->length = 1;
         $qdata->penalty = 0.1;
         $qdata->hidden = 0;
+        $qdata->idnumber = null;
 
         $qdata->options = new stdClass();
         $qdata->options->answers = array(
@@ -1081,6 +1091,7 @@ END;
     <defaultgrade>1</defaultgrade>
     <penalty>0.1</penalty>
     <hidden>0</hidden>
+    <idnumber></idnumber>
     <answer fraction="100" format="plain_text">
       <text>42</text>
       <feedback format="html">
@@ -1181,6 +1192,7 @@ END;
         $qdata->length = 1;
         $qdata->penalty = 0.3333333;
         $qdata->hidden = 0;
+        $qdata->idnumber = null;
 
         $qdata->options = new stdClass();
         $qdata->options->usecase = 0;
@@ -1212,6 +1224,7 @@ END;
     <defaultgrade>1</defaultgrade>
     <penalty>0.3333333</penalty>
     <hidden>0</hidden>
+    <idnumber></idnumber>
     <usecase>0</usecase>
     <answer fraction="100" format="plain_text">
       <text>Beta</text>
@@ -1288,6 +1301,59 @@ END;
         $this->assert(new question_check_specified_fields_expectation($expectedq), $q);
     }
 
+    public function test_import_truefalse_with_idnumber() {
+        $xml = '  <question type="truefalse">
+    <name>
+      <text>True false question</text>
+    </name>
+    <questiontext format="html">
+      <text>The answer is true.</text>
+    </questiontext>
+    <generalfeedback>
+      <text>General feedback: You should have chosen true.</text>
+    </generalfeedback>
+    <defaultgrade>1</defaultgrade>
+    <penalty>1</penalty>
+    <hidden>0</hidden>
+    <idnumber>TestIdNum1</idnumber>
+    <answer fraction="100">
+      <text>true</text>
+      <feedback>
+        <text>Well done!</text>
+      </feedback>
+    </answer>
+    <answer fraction="0">
+      <text>false</text>
+      <feedback>
+        <text>Doh!</text>
+      </feedback>
+    </answer>
+  </question>';
+        $xmldata = xmlize($xml);
+
+        $importer = new qformat_xml();
+        $q = $importer->import_truefalse($xmldata['question']);
+
+        $expectedq = new stdClass();
+        $expectedq->qtype = 'truefalse';
+        $expectedq->name = 'True false question';
+        $expectedq->questiontext = 'The answer is true.';
+        $expectedq->questiontextformat = FORMAT_HTML;
+        $expectedq->generalfeedback = 'General feedback: You should have chosen true.';
+        $expectedq->defaultmark = 1;
+        $expectedq->length = 1;
+        $expectedq->penalty = 1;
+        $expectedq->idnumber = 'TestIdNum1';
+
+        $expectedq->feedbacktrue = array('text' => 'Well done!',
+                'format' => FORMAT_HTML);
+        $expectedq->feedbackfalse = array('text' => 'Doh!',
+                'format' => FORMAT_HTML);
+        $expectedq->correctanswer = true;
+
+        $this->assert(new question_check_specified_fields_expectation($expectedq), $q);
+    }
+
     public function test_export_truefalse() {
         $qdata = new stdClass();
         $qdata->id = 12;
@@ -1302,6 +1368,7 @@ END;
         $qdata->length = 1;
         $qdata->penalty = 1;
         $qdata->hidden = 0;
+        $qdata->idnumber = null;
 
         $qdata->options = new stdClass();
         $qdata->options->answers = array(
@@ -1328,6 +1395,67 @@ END;
     <defaultgrade>1</defaultgrade>
     <penalty>1</penalty>
     <hidden>0</hidden>
+    <idnumber></idnumber>
+    <answer fraction="100" format="plain_text">
+      <text>true</text>
+      <feedback format="html">
+        <text>Well done!</text>
+      </feedback>
+    </answer>
+    <answer fraction="0" format="plain_text">
+      <text>false</text>
+      <feedback format="html">
+        <text>Doh!</text>
+      </feedback>
+    </answer>
+  </question>
+';
+
+        $this->assert_same_xml($expectedxml, $xml);
+    }
+
+    public function test_export_truefalse_with_idnumber() {
+        $qdata = new stdClass();
+        $qdata->id = 12;
+        $qdata->contextid = \context_system::instance()->id;
+        $qdata->qtype = 'truefalse';
+        $qdata->name = 'True false question';
+        $qdata->questiontext = 'The answer is true.';
+        $qdata->questiontextformat = FORMAT_HTML;
+        $qdata->generalfeedback = 'General feedback: You should have chosen true.';
+        $qdata->generalfeedbackformat = FORMAT_HTML;
+        $qdata->defaultmark = 1;
+        $qdata->length = 1;
+        $qdata->penalty = 1;
+        $qdata->hidden = 0;
+        $qdata->idnumber = 'TestIDNum2';
+
+        $qdata->options = new stdClass();
+        $qdata->options->answers = array(
+                1 => new question_answer(1, 'True', 1, 'Well done!', FORMAT_HTML),
+                2 => new question_answer(2, 'False', 0, 'Doh!', FORMAT_HTML),
+        );
+        $qdata->options->trueanswer = 1;
+        $qdata->options->falseanswer = 2;
+
+        $exporter = new qformat_xml();
+        $xml = $exporter->writequestion($qdata);
+
+        $expectedxml = '<!-- question: 12  -->
+  <question type="truefalse">
+    <name>
+      <text>True false question</text>
+    </name>
+    <questiontext format="html">
+      <text>The answer is true.</text>
+    </questiontext>
+    <generalfeedback format="html">
+      <text>General feedback: You should have chosen true.</text>
+    </generalfeedback>
+    <defaultgrade>1</defaultgrade>
+    <penalty>1</penalty>
+    <hidden>0</hidden>
+    <idnumber>TestIDNum2</idnumber>
     <answer fraction="100" format="plain_text">
       <text>true</text>
       <feedback format="html">
@@ -1472,6 +1600,7 @@ END;
     </generalfeedback>
     <penalty>0.3333333</penalty>
     <hidden>0</hidden>
+    <idnumber></idnumber>
     <hint format="html">
       <text>Hint 1</text>
     </hint>
@@ -1503,6 +1632,7 @@ END;
     </generalfeedback>
     <penalty>0.3333333</penalty>
     <hidden>0</hidden>
+    <idnumber></idnumber>
   </question>
 ';
 
@@ -1580,5 +1710,41 @@ END;
         $this->assertEquals('moodle.txt', $file->filename);
         $this->assertEquals('/myfolder/', $file->filepath);
         $this->assertEquals(6,            $file->size);
+    }
+
+    public function test_create_dummy_question() {
+
+        $testobject = new mock_qformat_xml();
+        $categoryname = 'name1';
+        $categoryinfo = new stdClass();
+        $categoryinfo->info = 'info1';
+        $categoryinfo->infoformat = 'infoformat1';
+        $dummyquestion = $testobject->mock_create_dummy_question_representing_category($categoryname, $categoryinfo);
+
+        $this->assertEquals('category', $dummyquestion->qtype);
+        $this->assertEquals($categoryname, $dummyquestion->category);
+        $this->assertEquals($categoryinfo->info, $dummyquestion->info);
+        $this->assertEquals($categoryinfo->infoformat, $dummyquestion->infoformat);
+        $this->assertEquals('Switch category to ' . $categoryname, $dummyquestion->name);
+        $this->assertEquals(0, $dummyquestion->id);
+        $this->assertEquals('', $dummyquestion->questiontextformat);
+        $this->assertEquals(0, $dummyquestion->contextid);
+    }
+}
+
+/**
+ * Class mock_qformat_xml exists only to enable testing of the create dummy question category.
+ * @package    qformat_xml
+ * @copyright  2018 The Open University
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+class mock_qformat_xml extends qformat_xml {
+    /**
+     * Make public an otherwise protected function.
+     * @param string $categoryname the name of the category
+     * @param object $categoryinfo description of the category
+     */
+    public function mock_create_dummy_question_representing_category(string $categoryname, $categoryinfo) {
+        return $this->create_dummy_question_representing_category($categoryname, $categoryinfo);
     }
 }

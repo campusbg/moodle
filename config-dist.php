@@ -287,16 +287,8 @@ $CFG->admin = 'admin';
 //      igbinary support to make the setting to work. Also, if you change the serializer you have to flush the database!
 //      $CFG->session_redis_serializer_use_igbinary = false; // Optional, default is PHP builtin serializer.
 //
-//   Memcache session handler (requires memcached server and memcache extension):
-//      $CFG->session_handler_class = '\core\session\memcache';
-//      $CFG->session_memcache_save_path = '127.0.0.1:11211';
-//      $CFG->session_memcache_acquire_lock_timeout = 120;
-//      ** NOTE: Memcache extension has less features than memcached and may be
-//         less reliable. Use memcached where possible or if you encounter
-//         session problems. **
-//
-// Please be aware that when selecting either Memcached or Memcache for sessions that it is advised to use a dedicated
-// memcache server. The memcache and memcached extensions do not provide isolated environments for individual uses.
+// Please be aware that when selecting Memcached for sessions that it is advised to use a dedicated
+// memcache server. The memcached extension does not provide isolated environments for individual uses.
 // Using the same server for other purposes (MUC for example) can lead to sessions being prematurely removed should
 // the other uses of the server purge the cache.
 //
@@ -382,6 +374,12 @@ $CFG->admin = 'admin';
 //   profilingincluded, profilingexcluded, profilingautofrec,
 //   profilingallowme, profilingallowall, profilinglifetime
 //       $CFG->earlyprofilingenabled = true;
+//
+// Disable database storage for profile data.
+// When using an exernal plugin to store profiling data it is often
+// desirable to not store the data in the database.
+//
+//      $CFG->disableprofilingtodatabase = true;
 //
 // Force displayed usernames
 //   A little hack to anonymise user names for all students.  If you set these
@@ -571,6 +569,14 @@ $CFG->admin = 'admin';
 // password.
 //
 //      $CFG->upgradekey = 'put_some_password-like_value_here';
+//
+// Document conversion limit
+//
+// How many times the background task should attempt to convert a given attempt
+// before removing it from the queue. Currently this limit is only used by the
+// mod_assign conversion task.
+//
+//      $CFG->conversionattemptlimit = 3;
 //
 //=========================================================================
 // 7. SETTINGS FOR DEVELOPMENT SERVERS - not intended for production use!!!

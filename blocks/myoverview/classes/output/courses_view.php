@@ -85,19 +85,28 @@ class courses_view implements renderable, templatable {
             $exportedcourse = $exporter->export($output);
             // Convert summary to plain text.
             $exportedcourse->summary = content_to_text($exportedcourse->summary, $exportedcourse->summaryformat);
-	    //$exportedcourse->context = print_r($context);
-	    $exportedcourse->url = '';
 
-//**
-        $fs = get_file_storage();
-        $files = $fs->get_area_files($context->id, 'course', 'overviewfiles', false, 'filename', false);
-        foreach ($files as $file) {
-            $isimage = $file->is_valid_image();
-            $url = file_encode_url("$CFG->wwwroot/pluginfile.php",
-                    '/'. $file->get_contextid(). '/'. $file->get_component(). '/'.
-                    $file->get_filearea(). $file->get_filepath(). $file->get_filename(), !$isimage);
-            if ($isimage) {
-                $exportedcourse->url = $url;
+            $course = new \core_course_list_element($course);
+            foreach ($course->get_course_overviewfiles() as $file) {
+                $isimage = $file->is_valid_image();
+                if ($isimage) {
+                    $url = file_encode_url("$CFG->wwwroot/pluginfile.php",
+                        '/'. $file->get_contextid(). '/'. $file->get_component(). '/'.
+                        $file->get_filearea(). $file->get_filepath(). $file->get_filename(), !$isimage);
+                    $exportedcourse->courseimage = $url;
+                    $exportedcourse->classes = 'courseimage';
+                    break;
+                }
+            }
+
+            $exportedcourse->color = $this->coursecolor($course->id);
+
+            if (!isset($exportedcourse->courseimage)) {
+                $pattern = new \core_geopattern();
+                $pattern->setColor($exportedcourse->color);
+                $pattern->patternbyid($courseid);
+                $exportedcourse->classes = 'coursepattern';
+                $exportedcourse->courseimage = $pattern->datauri();
             }
         }
 //**

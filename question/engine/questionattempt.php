@@ -1173,6 +1173,23 @@ class question_attempt {
     }
 
     /**
+     * Ensure that no reserved prefixes are being used by installed
+     * question types.
+     * @param array $expected An array of question type variables
+     */
+    protected function check_qt_var_name_restrictions($expected) {
+        global $CFG;
+
+        if ($CFG->debugdeveloper && $expected !== self::USE_RAW_DATA) {
+            foreach ($expected as $key => $value) {
+                if (strpos($key, 'bf_') !== false) {
+                    debugging('The bf_ prefix is reserved and cannot be used by question types', DEBUG_DEVELOPER);
+                }
+            }
+        }
+    }
+
+    /**
      * Get a set of response data for this question attempt that would get the
      * best possible mark. If it is not possible to compute a correct
      * response, this method should return null.
