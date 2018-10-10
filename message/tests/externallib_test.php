@@ -61,33 +61,16 @@ class core_message_externallib_testcase extends externallib_advanced_testcase {
             $time = time();
         }
 
-        if ($notification) {
-            $record = new stdClass();
-            $record->useridfrom = $userfrom->id;
-            $record->useridto = $userto->id;
-            $record->subject = 'No subject';
-            $record->fullmessage = $message;
-            $record->smallmessage = $message;
-            $record->timecreated = $time;
-
-            return $DB->insert_record('notifications', $record);
-        }
-
-        if (!$conversationid = \core_message\api::get_conversation_between_users([$userfrom->id, $userto->id])) {
-            $conversationid = \core_message\api::create_conversation_between_users([$userfrom->id,
-                $userto->id]);
-        }
-
-        // Ok, send the message.
         $record = new stdClass();
         $record->useridfrom = $userfrom->id;
-        $record->conversationid = $conversationid;
+        $record->useridto = $userto->id;
         $record->subject = 'No subject';
-        $record->fullmessage = $message;
         $record->smallmessage = $message;
+        $record->fullmessage = $message;
         $record->timecreated = $time;
+        $record->notification = $notification;
 
-        return $DB->insert_record('messages', $record);
+        return $DB->insert_record('message', $record);
     }
 
     /**
@@ -127,15 +110,7 @@ class core_message_externallib_testcase extends externallib_advanced_testcase {
         // We need to execute the return values cleaning process to simulate the web service server.
         $sentmessages = external_api::clean_returnvalue(core_message_external::send_instant_messages_returns(), $sentmessages);
 
-        $sql = "SELECT m.*, mcm.userid as useridto
-                 FROM {messages} m
-           INNER JOIN {message_conversations} mc
-                   ON m.conversationid = mc.id
-           INNER JOIN {message_conversation_members} mcm
-                   ON mcm.conversationid = mc.id
-                WHERE mcm.userid != ?
-                  AND m.id = ?";
-        $themessage = $DB->get_record_sql($sql, [$USER->id, $sentmessages[0]['msgid']]);
+        $themessage = $DB->get_record('message', array('id' => $sentmessages[0]['msgid']));
 
         // Confirm that the message was inserted correctly.
         $this->assertEquals($themessage->useridfrom, $USER->id);
@@ -490,7 +465,8 @@ class core_message_externallib_testcase extends externallib_advanced_testcase {
 
         // Delete the message.
         $message = array_shift($messages['messages']);
-        \core_message\api::delete_message($user1->id, $message['id']);
+        $messagetobedeleted = $DB->get_record('message_read', array('id' => $message['id']));
+        message_delete_message($messagetobedeleted, $user1->id);
 
         $messages = core_message_external::get_messages($user2->id, $user1->id, 'conversations', true, true, 0, 0);
         $messages = external_api::clean_returnvalue(core_message_external::get_messages_returns(), $messages);
@@ -519,7 +495,8 @@ class core_message_externallib_testcase extends externallib_advanced_testcase {
 
         // Delete the message.
         $message = array_shift($messages['messages']);
-        \core_message\api::delete_message($user2->id, $message['id']);
+        $messagetobedeleted = $DB->get_record('message_read', array('id' => $message['id']));
+        message_delete_message($messagetobedeleted, $user2->id);
 
         $messages = core_message_external::get_messages($user2->id, $user3->id, 'conversations', true, true, 0, 0);
         $messages = external_api::clean_returnvalue(core_message_external::get_messages_returns(), $messages);
@@ -845,10 +822,10 @@ class core_message_externallib_testcase extends externallib_advanced_testcase {
 
         // Invalid message ids.
         try {
-            $messageid = core_message_external::mark_message_read(1337, time());
+            $messageid = core_message_external::mark_message_read($messageids[0]['messageid'] * 2, time());
             $this->fail('Exception expected due invalid messageid.');
         } catch (dml_missing_record_exception $e) {
-            $this->assertEquals('invalidrecordunknown', $e->errorcode);
+            $this->assertEquals('invalidrecord', $e->errorcode);
         }
 
         // A message to a different user.
@@ -860,66 +837,7 @@ class core_message_externallib_testcase extends externallib_advanced_testcase {
         } catch (invalid_parameter_exception $e) {
             $this->assertEquals('invalidparameter', $e->errorcode);
         }
-    }
 
-    /**
-     * Test mark_notification_read.
-     */
-    public function test_mark_notification_read() {
-        $this->resetAfterTest(true);
-
-        $user1 = self::getDataGenerator()->create_user();
-        $user2 = self::getDataGenerator()->create_user();
-        $user3 = self::getDataGenerator()->create_user();
-
-        // Login as user1.
-        $this->setUser($user1);
-        $this->assertEquals(array(), core_message_external::create_contacts(
-            array($user2->id, $user3->id)));
-
-        // The user2 sends a couple of notifications to user1.
-        $this->send_message($user2, $user1, 'Hello there!', 1);
-        $this->send_message($user2, $user1, 'How you goin?', 1);
-        $this->send_message($user3, $user1, 'How you goin?', 1);
-        $this->send_message($user3, $user2, 'How you goin?', 1);
-
-        // Retrieve all notifications sent by user2 (they are currently unread).
-        $lastnotifications = message_get_messages($user1->id, $user2->id, 1, false);
-
-        $notificationids = array();
-        foreach ($lastnotifications as $n) {
-            $notificationid = core_message_external::mark_notification_read($n->id, time());
-            $notificationids[] = external_api::clean_returnvalue(core_message_external::mark_notification_read_returns(),
-                $notificationid);
-        }
-
-        // Retrieve all notifications sent (they are currently read).
-        $lastnotifications = message_get_messages($user1->id, $user2->id, 1, true);
-        $this->assertCount(2, $lastnotifications);
-        $this->assertArrayHasKey($notificationids[1]['notificationid'], $lastnotifications);
-        $this->assertArrayHasKey($notificationids[0]['notificationid'], $lastnotifications);
-
-        // Retrieve all notifications sent by any user (that are currently unread).
-        $lastnotifications = message_get_messages($user1->id, 0, 1, false);
-        $this->assertCount(1, $lastnotifications);
-
-        // Invalid notification ids.
-        try {
-            $notificationid = core_message_external::mark_notification_read(1337, time());
-            $this->fail('Exception expected due invalid notificationid.');
-        } catch (dml_missing_record_exception $e) {
-            $this->assertEquals('invalidrecord', $e->errorcode);
-        }
-
-        // A notification to a different user.
-        $lastnotifications = message_get_messages($user2->id, $user3->id, 1, false);
-        $notificationid = array_pop($lastnotifications)->id;
-        try {
-            $notificationid = core_message_external::mark_notification_read($notificationid, time());
-            $this->fail('Exception expected due invalid notificationid.');
-        } catch (invalid_parameter_exception $e) {
-            $this->assertEquals('invalidparameter', $e->errorcode);
-        }
     }
 
     /**
@@ -952,8 +870,8 @@ class core_message_externallib_testcase extends externallib_advanced_testcase {
         $result = external_api::clean_returnvalue(core_message_external::delete_message_returns(), $result);
         $this->assertTrue($result['status']);
         $this->assertCount(0, $result['warnings']);
-        $mua = $DB->get_record('message_user_actions', array('messageid' => $m1to2, 'userid' => $user1->id));
-        $this->assertEquals(\core_message\api::MESSAGE_ACTION_DELETED, $mua->action);
+        $deletedmessage = $DB->get_record('message', array('id' => $m1to2));
+        $this->assertNotEquals(0, $deletedmessage->timeuserfromdeleted);
 
         // Try to delete the same message again.
         $result = core_message_external::delete_message($m1to2, $user1->id, false);
@@ -974,25 +892,25 @@ class core_message_externallib_testcase extends externallib_advanced_testcase {
         $result = external_api::clean_returnvalue(core_message_external::delete_message_returns(), $result);
         $this->assertTrue($result['status']);
         $this->assertCount(0, $result['warnings']);
-        $this->assertTrue($DB->record_exists('message_user_actions', array('messageid' => $m2to3, 'userid' => $user3->id,
-            'action' => \core_message\api::MESSAGE_ACTION_DELETED)));
+        $deletedmessage = $DB->get_record('message', array('id' => $m2to3));
+        $this->assertNotEquals(0, $deletedmessage->timeusertodeleted);
 
         // Delete a message read.
-        $message = $DB->get_record('messages', ['id' => $m3to2]);
-        \core_message\api::mark_message_as_read($user3->id, $message, time());
-        $result = core_message_external::delete_message($m3to2, $user3->id);
+        $message = $DB->get_record('message', array('id' => $m3to2));
+        $messageid = message_mark_message_read($message, time());
+        $result = core_message_external::delete_message($messageid, $user3->id);
         $result = external_api::clean_returnvalue(core_message_external::delete_message_returns(), $result);
         $this->assertTrue($result['status']);
         $this->assertCount(0, $result['warnings']);
-        $this->assertTrue($DB->record_exists('message_user_actions', array('messageid' => $m3to2, 'userid' => $user3->id,
-            'action' => \core_message\api::MESSAGE_ACTION_DELETED)));
+        $deletedmessage = $DB->get_record('message_read', array('id' => $messageid));
+        $this->assertNotEquals(0, $deletedmessage->timeuserfromdeleted);
 
         // Invalid message ids.
         try {
             $result = core_message_external::delete_message(-1, $user1->id);
             $this->fail('Exception expected due invalid messageid.');
         } catch (dml_missing_record_exception $e) {
-            $this->assertEquals('invalidrecordunknown', $e->errorcode);
+            $this->assertEquals('invalidrecord', $e->errorcode);
         }
 
         // Invalid user.
@@ -1018,8 +936,8 @@ class core_message_externallib_testcase extends externallib_advanced_testcase {
         $result = external_api::clean_returnvalue(core_message_external::delete_message_returns(), $result);
         $this->assertTrue($result['status']);
         $this->assertCount(0, $result['warnings']);
-        $this->assertTrue($DB->record_exists('message_user_actions', array('messageid' => $m3to4, 'userid' => $user4->id,
-            'action' => \core_message\api::MESSAGE_ACTION_DELETED)));
+        $deletedmessage = $DB->get_record('message', array('id' => $m3to4));
+        $this->assertNotEquals(0, $deletedmessage->timeusertodeleted);
 
     }
 
@@ -1071,15 +989,15 @@ class core_message_externallib_testcase extends externallib_advanced_testcase {
         $this->send_message($sender3, $recipient, 'Notification', 1);
 
         core_message_external::mark_all_notifications_as_read($recipient->id, $sender1->id);
-        $readnotifications = $DB->get_records_select('notifications', 'useridto = ? AND timeread IS NOT NULL', [$recipient->id]);
-        $unreadnotifications = $DB->get_records_select('notifications', 'useridto = ? AND timeread IS NULL', [$recipient->id]);
+        $readnotifications = $DB->get_records('message_read', ['useridto' => $recipient->id]);
+        $unreadnotifications = $DB->get_records('message', ['useridto' => $recipient->id]);
 
         $this->assertCount(2, $readnotifications);
         $this->assertCount(4, $unreadnotifications);
 
         core_message_external::mark_all_notifications_as_read($recipient->id, 0);
-        $readnotifications = $DB->get_records_select('notifications', 'useridto = ? AND timeread IS NOT NULL', [$recipient->id]);
-        $unreadnotifications = $DB->get_records_select('notifications', 'useridto = ? AND timeread IS NULL', [$recipient->id]);
+        $readnotifications = $DB->get_records('message_read', ['useridto' => $recipient->id]);
+        $unreadnotifications = $DB->get_records('message', ['useridto' => $recipient->id]);
 
         $this->assertCount(6, $readnotifications);
         $this->assertCount(0, $unreadnotifications);
@@ -2569,10 +2487,18 @@ class core_message_externallib_testcase extends externallib_advanced_testcase {
         $this->send_message($sender3, $recipient, 'Message');
 
         core_message_external::mark_all_messages_as_read($recipient->id, $sender1->id);
-        $this->assertEquals(2, $DB->count_records('message_user_actions'));
+        $readnotifications = $DB->get_records('message_read', array('useridto' => $recipient->id));
+        $unreadnotifications = $DB->get_records('message', array('useridto' => $recipient->id));
+
+        $this->assertCount(2, $readnotifications);
+        $this->assertCount(4, $unreadnotifications);
 
         core_message_external::mark_all_messages_as_read($recipient->id, 0);
-        $this->assertEquals(6, $DB->count_records('message_user_actions'));
+        $readnotifications = $DB->get_records('message_read', array('useridto' => $recipient->id));
+        $unreadnotifications = $DB->get_records('message', array('useridto' => $recipient->id));
+
+        $this->assertCount(6, $readnotifications);
+        $this->assertCount(0, $unreadnotifications);
     }
 
     /**
@@ -2690,39 +2616,33 @@ class core_message_externallib_testcase extends externallib_advanced_testcase {
 
         // Send some messages back and forth.
         $time = time();
-        $m1id = $this->send_message($user1, $user2, 'Yo!', 0, $time);
-        $m2id = $this->send_message($user2, $user1, 'Sup mang?', 0, $time + 1);
-        $m3id = $this->send_message($user1, $user2, 'Writing PHPUnit tests!', 0, $time + 2);
-        $m4id = $this->send_message($user2, $user1, 'Word.', 0, $time + 3);
+        $this->send_message($user1, $user2, 'Yo!', 0, $time);
+        $this->send_message($user2, $user1, 'Sup mang?', 0, $time + 1);
+        $this->send_message($user1, $user2, 'Writing PHPUnit tests!', 0, $time + 2);
+        $this->send_message($user2, $user1, 'Word.', 0, $time + 3);
 
         // Delete the conversation.
         core_message_external::delete_conversation($user1->id, $user2->id);
 
-        $muas = $DB->get_records('message_user_actions', array(), 'timecreated ASC');
-        $this->assertCount(4, $muas);
-        // Sort by id.
-        ksort($muas);
+        $messages = $DB->get_records('message', array(), 'timecreated ASC');
+        $this->assertCount(4, $messages);
 
-        $mua1 = array_shift($muas);
-        $mua2 = array_shift($muas);
-        $mua3 = array_shift($muas);
-        $mua4 = array_shift($muas);
+        $message1 = array_shift($messages);
+        $message2 = array_shift($messages);
+        $message3 = array_shift($messages);
+        $message4 = array_shift($messages);
 
-        $this->assertEquals($user1->id, $mua1->userid);
-        $this->assertEquals($m1id, $mua1->messageid);
-        $this->assertEquals(\core_message\api::MESSAGE_ACTION_DELETED, $mua1->action);
+        $this->assertNotEmpty($message1->timeuserfromdeleted);
+        $this->assertEmpty($message1->timeusertodeleted);
 
-        $this->assertEquals($user1->id, $mua2->userid);
-        $this->assertEquals($m2id, $mua2->messageid);
-        $this->assertEquals(\core_message\api::MESSAGE_ACTION_DELETED, $mua2->action);
+        $this->assertEmpty($message2->timeuserfromdeleted);
+        $this->assertNotEmpty($message2->timeusertodeleted);
 
-        $this->assertEquals($user1->id, $mua3->userid);
-        $this->assertEquals($m3id, $mua3->messageid);
-        $this->assertEquals(\core_message\api::MESSAGE_ACTION_DELETED, $mua3->action);
+        $this->assertNotEmpty($message3->timeuserfromdeleted);
+        $this->assertEmpty($message3->timeusertodeleted);
 
-        $this->assertEquals($user1->id, $mua4->userid);
-        $this->assertEquals($m4id, $mua4->messageid);
-        $this->assertEquals(\core_message\api::MESSAGE_ACTION_DELETED, $mua4->action);
+        $this->assertEmpty($message4->timeuserfromdeleted);
+        $this->assertNotEmpty($message4->timeusertodeleted);
     }
 
     /**
@@ -2741,39 +2661,33 @@ class core_message_externallib_testcase extends externallib_advanced_testcase {
 
         // Send some messages back and forth.
         $time = time();
-        $m1id = $this->send_message($user1, $user2, 'Yo!', 0, $time);
-        $m2id = $this->send_message($user2, $user1, 'Sup mang?', 0, $time + 1);
-        $m3id = $this->send_message($user1, $user2, 'Writing PHPUnit tests!', 0, $time + 2);
-        $m4id = $this->send_message($user2, $user1, 'Word.', 0, $time + 3);
+        $this->send_message($user1, $user2, 'Yo!', 0, $time);
+        $this->send_message($user2, $user1, 'Sup mang?', 0, $time + 1);
+        $this->send_message($user1, $user2, 'Writing PHPUnit tests!', 0, $time + 2);
+        $this->send_message($user2, $user1, 'Word.', 0, $time + 3);
 
         // Delete the conversation.
         core_message_external::delete_conversation($user1->id, $user2->id);
 
-        $muas = $DB->get_records('message_user_actions', array(), 'timecreated ASC');
-        $this->assertCount(4, $muas);
-        // Sort by id.
-        ksort($muas);
+        $messages = $DB->get_records('message', array(), 'timecreated ASC');
+        $this->assertCount(4, $messages);
 
-        $mua1 = array_shift($muas);
-        $mua2 = array_shift($muas);
-        $mua3 = array_shift($muas);
-        $mua4 = array_shift($muas);
+        $message1 = array_shift($messages);
+        $message2 = array_shift($messages);
+        $message3 = array_shift($messages);
+        $message4 = array_shift($messages);
 
-        $this->assertEquals($user1->id, $mua1->userid);
-        $this->assertEquals($m1id, $mua1->messageid);
-        $this->assertEquals(\core_message\api::MESSAGE_ACTION_DELETED, $mua1->action);
+        $this->assertNotEmpty($message1->timeuserfromdeleted);
+        $this->assertEmpty($message1->timeusertodeleted);
 
-        $this->assertEquals($user1->id, $mua2->userid);
-        $this->assertEquals($m2id, $mua2->messageid);
-        $this->assertEquals(\core_message\api::MESSAGE_ACTION_DELETED, $mua2->action);
+        $this->assertEmpty($message2->timeuserfromdeleted);
+        $this->assertNotEmpty($message2->timeusertodeleted);
 
-        $this->assertEquals($user1->id, $mua3->userid);
-        $this->assertEquals($m3id, $mua3->messageid);
-        $this->assertEquals(\core_message\api::MESSAGE_ACTION_DELETED, $mua3->action);
+        $this->assertNotEmpty($message3->timeuserfromdeleted);
+        $this->assertEmpty($message3->timeusertodeleted);
 
-        $this->assertEquals($user1->id, $mua4->userid);
-        $this->assertEquals($m4id, $mua4->messageid);
-        $this->assertEquals(\core_message\api::MESSAGE_ACTION_DELETED, $mua4->action);
+        $this->assertEmpty($message4->timeuserfromdeleted);
+        $this->assertNotEmpty($message4->timeusertodeleted);
     }
 
     /**

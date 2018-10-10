@@ -242,7 +242,12 @@ img.resize {
     white-space: nowrap;
 }
 
-.block img.resize {
+.action-menu .userpicture {
+    margin-left: 1rem;
+}
+
+.block img.resize,
+.breadcrumb img.resize {
     height: 0.9em;
     width: 0.8em;
 }
@@ -297,7 +302,10 @@ form.popupform div {
 
 // Accessibility: text 'seen' by screen readers but not visual users.
 .accesshide {
-    @include sr-only();
+    position: absolute;
+    left: -10000px;
+    font-weight: normal;
+    font-size: 1em;
 }
 
 span.hide,
@@ -1162,7 +1170,6 @@ body#page-lib-editor-tinymce-plugins-moodlemedia-preview {
 
 .moodle-dialogue-base .moodle-dialogue-wrap .moodle-dialogue-hd h1 {
     @extend .modal-title;
-    font-size: 1.5rem;
 }
 
 .moodle-dialogue-base .moodle-dialogue-wrap .moodle-dialogue-hd .yui3-widget-buttons {
@@ -1182,7 +1189,7 @@ body#page-lib-editor-tinymce-plugins-moodlemedia-preview {
 }
 
 .moodle-dialogue-base .moodle-dialogue .moodle-dialogue-bd {
-    padding: 0.5rem;
+    @extend .modal-body;
 }
 
 .moodle-dialogue-base .moodle-dialogue-fullscreen .moodle-dialogue-content {
@@ -1241,7 +1248,10 @@ body#page-lib-editor-tinymce-plugins-moodlemedia-preview {
 }
 
 .moodle-dialogue-confirm .confirmation-message {
-    margin: 0.5rem 0;
+    margin: 0.5em 1em;
+}
+.moodle-dialogue-confirm .confirmation-buttons {
+    text-align: right;
 }
 
 .moodle-dialogue-confirm .confirmation-dialogue input {
@@ -1744,6 +1754,18 @@ img#persona_signin {
     border-width: 0;
 }
 
+.breadcrumb-nav {
+    float: left;
+}
+
+.breadcrumb-button .singlebutton div {
+    margin-right: 0;
+}
+
+.breadcrumb-nav .breadcrumb {
+    margin: 0;
+}
+
 /** Page header */
 #page-header {
     .logo {
@@ -1754,9 +1776,16 @@ img#persona_signin {
     }
 }
 
-/** Navbar logo. */
-nav.navbar .logo img {
-    max-height: 35px;
+/** Header. */
+header {
+    .logo img {
+        max-height: 35px;
+    }
+    .collapse.in,
+    .collapsing {
+        display: block;
+        clear: both;
+    }
 }
 
 /** Header-bar styles **/
@@ -2091,9 +2120,9 @@ $footer-link-color: $bg-inverse-link-color !default;
         transform: translate(-50%, -50%);
 
         .icon {
-            height: 30px;
-            width: 30px;
-            font-size: 30px;
+            height: 40px;
+            width: 40px;
+
         }
     }
 }

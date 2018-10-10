@@ -36,3 +36,4 @@ $string['pluginname'] = 'Course overview';
 $string['viewcourse'] = 'View course';
 $string['viewcoursename'] = 'View course {$a}';
 $string['privacy:metadata'] = 'The myoverview block does not store any personal data.';
+

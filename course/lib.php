@@ -2444,6 +2444,25 @@ function create_course($data, $editoroptions = NULL) {
 
     // update course format options
     course_get_format($newcourseid)->update_course_format_options($data);
+    $aux = $data->quote;
+    if(empty($data->quote)){
+    	$sql = 'UPDATE modl_course set quote = 0 where id = '.$newcourseid;
+    }else{
+	$sql = 'UPDATE modl_course set quote = '.$aux.' where id = '.$newcourseid;
+    }
+    $DB->execute($sql);
+    
+    // update course format options
+
+    $aux2 = $data->politician;
+    echo '5555-'.$aux2;
+    if(empty($data->politician)){
+    	$sql = 'UPDATE modl_course set politician = 0 where id = '.$newcourseid;
+    }else{
+	$sql = 'UPDATE modl_course set politician = '.$aux2.' where id = '.$newcourseid;
+    }
+    $DB->execute($sql);
+    
 
     $course = course_get_format($newcourseid)->get_course();
 
@@ -2523,6 +2542,13 @@ function update_course($data, $editoroptions = NULL) {
             throw new moodle_exception('shortnametaken', '', '', $data->shortname);
         }
     }
+    // Check we don't have a duplicate idnumber.
+
+    //if (!empty($data->quote)) {
+        //if ($DB->record_exists_sql('SELECT id from {course} WHERE quote = ? AND id <> ?', array($data->idnumber, $data->id))) {
+            //throw new moodle_exception('courseidnumbertaken', '', '', $sql);
+        //}
+    //}
 
     // Check we don't have a duplicate idnumber.
     if (!empty($data->idnumber) && $oldcourse->idnumber != $data->idnumber) {
@@ -2570,6 +2596,22 @@ function update_course($data, $editoroptions = NULL) {
 
     // Update with the new data
     $DB->update_record('course', $data);
+    $aux = $data->quote;
+    if(empty($data->quote)){
+    	$sql = 'UPDATE modl_course set quote = 0 where id = '.$data->id;
+    }else{
+	$sql = 'UPDATE modl_course set quote = '.$aux.' where id = '.$data->id;
+    }
+    $DB->execute($sql);
+    //politicas
+    $aux2 = $data->politician;
+    if(empty($data->politician)){
+    	$sql = 'UPDATE modl_course set politician = 0 where id = '.$data->id;
+    }else{
+	$sql = 'UPDATE modl_course set politician = '.$aux2.' where id = '.$data->id;
+    }
+    $DB->execute($sql);
+
     // make sure the modinfo cache is reset
     rebuild_course_cache($data->id);
 

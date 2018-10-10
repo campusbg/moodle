@@ -1124,7 +1124,25 @@ class core_course_renderer extends plugin_renderer_base {
                 $this->coursecat_include_js();
             }
         }
+$sql = 'select count(*) as n from modl_user_enrolments m, modl_enrol e, modl_course c
+WHERE c.id=e.courseid and e.id = m.enrolid and c.id = '.$course->id;
+$numeroparti = $DB->get_records_sql($sql);
+
+//print_r($numeroparti);
+//echo $numeroparti[0]->n;
+foreach($numeroparti as $aux){
+$cuposoc=$aux->n;
+//echo 'hola '.$cuposoc;
+}
+
+	$content .= html_writer::start_tag('a', array('style' => 'font-size: 2em;'));
+	//$cupos = $DB->get_record('course', array('id'=>$course->id));
+	//$sql = 'SELECT inscription from modl_course where id = '.$course->id;
+	//$inscritos = $DB->execute($sql);
+	$content .= 'Cupos '. $cuposoc.'/'. $course->quote;
+	$content .= html_writer::end_tag('a');
         $content .= html_writer::end_tag('div'); // .moreinfo
+        
 
         // print enrolmenticons
         if ($icons = enrol_get_course_info_icons($course)) {
@@ -1182,7 +1200,7 @@ class core_course_renderer extends plugin_renderer_base {
             if ($isimage) {
                 $contentimages .= html_writer::tag('div',
                         html_writer::empty_tag('img', array('src' => $url)),
-                        array('class' => 'courseimage'));
+                        array('class' => 'courseimage', 'style' => 'color: blue;'));
             } else {
                 $image = $this->output->pix_icon(file_file_icon($file, 24), $file->get_filename(), 'moodle');
                 $filename = html_writer::tag('span', $image, array('class' => 'fp-icon')).
@@ -1932,7 +1950,13 @@ class core_course_renderer extends plugin_renderer_base {
         }
 
         $output = '';
-        $courses  = enrol_get_my_courses('summary, summaryformat');
+        if (!empty($CFG->navsortmycoursessort)) {
+            // sort courses the same as in navigation menu
+            $sortorder = 'visible DESC,'. $CFG->navsortmycoursessort.' ASC';
+        } else {
+            $sortorder = 'visible DESC,sortorder ASC';
+        }
+        $courses  = enrol_get_my_courses('summary, summaryformat', $sortorder);
         $rhosts   = array();
         $rcourses = array();
         if (!empty($CFG->mnet_dispatcher_mode) && $CFG->mnet_dispatcher_mode==='strict') {

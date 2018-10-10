@@ -441,6 +441,8 @@ class mod_lesson_lib_testcase extends advanced_testcase {
         $this->assertEquals(mod_lesson_get_completion_active_rule_descriptions($moddefaults), $activeruledescriptions);
         $this->assertEquals(mod_lesson_get_completion_active_rule_descriptions(new stdClass()), []);
     }
+<<<<<<< HEAD
+=======
 
     /**
      * An unknown event type should not change the lesson instance.
@@ -746,4 +748,5 @@ class mod_lesson_lib_testcase extends advanced_testcase {
         );
         $generator->create_instance($params);
     }
+>>>>>>> master
 }

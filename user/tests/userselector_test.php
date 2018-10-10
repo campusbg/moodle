@@ -242,7 +242,6 @@ class core_user_selector_testcase extends advanced_testcase {
         $explicitselector = new testable_user_selector('test', ['extrafields' => ['email', 'department']]);
 
         $this->assertDebuggingCalled();
-
         foreach ($implicitselector->find_users('') as $found) {
             foreach ($found as $user) {
                 $this->assertObjectHasAttribute('idnumber', $user);

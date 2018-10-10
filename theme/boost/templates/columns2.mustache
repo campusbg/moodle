@@ -48,7 +48,14 @@
         "hasregionmainsettingsmenu": false
     }
 }}
-{{> theme_boost/head }}
+{{{ output.doctype }}}
+<html {{{ output.htmlattributes }}}>
+<head>
+    <title>{{{ output.page_title }}}</title>
+    <link rel="shortcut icon" href="{{{ output.favicon }}}" />
+    {{{ output.standard_head_html }}}
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
 
 <body {{{ bodyattributes }}}>
 
@@ -64,7 +71,7 @@
         <div id="page-content" class="row pb-3">
             <div id="region-main-box" class="col-12">
                 {{#hasregionmainsettingsmenu}}
-                <div id="region-main-settings-menu" class="d-print-none {{#hasblocks}}has-blocks{{/hasblocks}}">
+                <div id="region-main-settings-menu" class="hidden-print {{#hasblocks}}has-blocks{{/hasblocks}}">
                     <div> {{{ output.region_main_settings_menu }}} </div>
                 </div>
                 {{/hasregionmainsettingsmenu}}
@@ -80,7 +87,7 @@
 
                 </section>
                 {{#hasblocks}}
-                <section data-region="blocks-column" class="d-print-none">
+                <section data-region="blocks-column" class="hidden-print">
                     {{{ sidepreblocks }}}
                 </section>
                 {{/hasblocks}}
@@ -90,6 +97,9 @@
     {{> theme_boost/nav-drawer }}
     {{> theme_boost/footer }}
 </div>
+<footer id="page-footer" class="p-y-1 bg-inverse">
+    <div class="container">
+        <div id="course-footer">{{{ output.course_footer }}}</div>
 
 </body>
 </html>

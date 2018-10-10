@@ -29,8 +29,7 @@ $mode = required_param('mode', PARAM_ALPHANUMEXT);
 $classformode = array(
     'assign' => 'core_role_allow_assign_page',
     'override' => 'core_role_allow_override_page',
-    'switch' => 'core_role_allow_switch_page',
-    'view' => 'core_role_allow_view_page'
+    'switch' => 'core_role_allow_switch_page'
 );
 if (!isset($classformode[$mode])) {
     print_error('invalidmode', '', '', $mode);
@@ -57,9 +56,6 @@ if (optional_param('submit', false, PARAM_BOOL) && data_submitted() && confirm_s
             break;
         case 'switch':
             $event = \core\event\role_allow_switch_updated::create(array('context' => $syscontext));
-            break;
-        case 'view':
-            $event = \core\event\role_allow_view_updated::create(array('context' => $syscontext));
             break;
     }
     if ($event) {

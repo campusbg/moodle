@@ -191,7 +191,6 @@ class badge {
                     BADGE_CRITERIA_TYPE_OVERALL,
                     BADGE_CRITERIA_TYPE_MANUAL,
                     BADGE_CRITERIA_TYPE_COURSE,
-                    BADGE_CRITERIA_TYPE_BADGE,
                     BADGE_CRITERIA_TYPE_ACTIVITY
             );
         } else if ($this->type == BADGE_TYPE_SITE) {
@@ -199,9 +198,7 @@ class badge {
                     BADGE_CRITERIA_TYPE_OVERALL,
                     BADGE_CRITERIA_TYPE_MANUAL,
                     BADGE_CRITERIA_TYPE_COURSESET,
-                    BADGE_CRITERIA_TYPE_BADGE,
                     BADGE_CRITERIA_TYPE_PROFILE,
-                    BADGE_CRITERIA_TYPE_COHORT,
             );
         }
 

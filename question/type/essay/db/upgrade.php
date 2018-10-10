@@ -30,9 +30,10 @@ defined('MOODLE_INTERNAL') || die();
  * @param int $oldversion the version we are upgrading from.
  */
 function xmldb_qtype_essay_upgrade($oldversion) {
-    global $CFG, $DB;
+    global $CFG;
 
-    $dbman = $DB->get_manager();
+    // Moodle v3.1.0 release upgrade line.
+    // Put any upgrade step following this.
 
     // Automatically generated Moodle v3.2.0 release upgrade line.
     // Put any upgrade step following this.

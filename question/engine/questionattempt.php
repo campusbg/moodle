@@ -1107,10 +1107,8 @@ class question_attempt {
             return null;
         }
 
-        $filearea = str_replace($this->get_field_prefix(), '', $name);
-        $filearea = str_replace('-', 'bf_', $filearea);
-        $filearea = 'response_' . $filearea;
-        return new question_file_saver($draftitemid, 'question', $filearea, $text);
+        return new question_file_saver($draftitemid, 'question', 'response_' .
+                str_replace($this->get_field_prefix(), '', $name), $text);
     }
 
     /**
@@ -1166,8 +1164,6 @@ class question_attempt {
                 $this->behaviour->get_expected_data(), $postdata, '-');
 
         $expected = $this->behaviour->get_expected_qt_data();
-        $this->check_qt_var_name_restrictions($expected);
-
         if ($expected === self::USE_RAW_DATA) {
             $submitteddata += $this->get_all_submitted_qt_vars($postdata);
         } else {
@@ -1391,17 +1387,16 @@ class question_attempt {
 
     /**
      * @return array(string, int) the most recent manual comment that was added
-     * to this question, the FORMAT_... it is and the step itself.
+     * to this question, and the FORMAT_... it is.
      */
     public function get_manual_comment() {
         foreach ($this->get_reverse_step_iterator() as $step) {
             if ($step->has_behaviour_var('comment')) {
                 return array($step->get_behaviour_var('comment'),
-                        $step->get_behaviour_var('commentformat'),
-                        $step);
+                        $step->get_behaviour_var('commentformat'));
             }
         }
-        return array(null, null, null);
+        return array(null, null);
     }
 
     /**
@@ -1421,7 +1416,7 @@ class question_attempt {
             if ($commentformat === null) {
                 $commentformat = FORMAT_HTML;
             }
-            return array($comment, $commentformat, null);
+            return array($comment, $commentformat);
         }
     }
 

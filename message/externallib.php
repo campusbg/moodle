@@ -1161,7 +1161,7 @@ class core_message_external extends external_api {
      * @since Moodle 2.5
      */
     public static function get_contacts() {
-        global $CFG, $PAGE, $USER;
+        global $CFG, $PAGE;
 
         // Check if messaging is enabled.
         if (empty($CFG->messaging)) {
@@ -1170,68 +1170,25 @@ class core_message_external extends external_api {
 
         require_once($CFG->dirroot . '/user/lib.php');
 
-        $allcontacts = array('online' => [], 'offline' => [], 'strangers' => []);
-        $contacts = \core_message\api::get_contacts_with_unread_message_count($USER->id);
-        foreach ($contacts as $contact) {
-            // Set the mode.
-            $mode = 'offline';
-            if (\core_message\helper::is_online($contact->lastaccess)) {
-                $mode = 'online';
-            }
+        list($online, $offline, $strangers) = message_get_contacts();
+        $allcontacts = array('online' => $online, 'offline' => $offline, 'strangers' => $strangers);
+        foreach ($allcontacts as $mode => $contacts) {
+            foreach ($contacts as $key => $contact) {
+                $newcontact = array(
+                    'id' => $contact->id,
+                    'fullname' => fullname($contact),
+                    'unread' => $contact->messagecount
+                );
 
-            $newcontact = array(
-                'id' => $contact->id,
-                'fullname' => fullname($contact),
-                'unread' => $contact->messagecount
-            );
+                $userpicture = new user_picture($contact);
+                $userpicture->size = 1; // Size f1.
+                $newcontact['profileimageurl'] = $userpicture->get_url($PAGE)->out(false);
+                $userpicture->size = 0; // Size f2.
+                $newcontact['profileimageurlsmall'] = $userpicture->get_url($PAGE)->out(false);
 
-            $userpicture = new user_picture($contact);
-            $userpicture->size = 1; // Size f1.
-            $newcontact['profileimageurl'] = $userpicture->get_url($PAGE)->out(false);
-            $userpicture->size = 0; // Size f2.
-            $newcontact['profileimageurlsmall'] = $userpicture->get_url($PAGE)->out(false);
-
-            $allcontacts[$mode][$contact->id] = $newcontact;
-        }
-
-        $strangers = \core_message\api::get_non_contacts_with_unread_message_count($USER->id);
-        foreach ($strangers as $contact) {
-            $newcontact = array(
-                'id' => $contact->id,
-                'fullname' => fullname($contact),
-                'unread' => $contact->messagecount
-            );
-
-            $userpicture = new user_picture($contact);
-            $userpicture->size = 1; // Size f1.
-            $newcontact['profileimageurl'] = $userpicture->get_url($PAGE)->out(false);
-            $userpicture->size = 0; // Size f2.
-            $newcontact['profileimageurlsmall'] = $userpicture->get_url($PAGE)->out(false);
-
-            $allcontacts['strangers'][$contact->id] = $newcontact;
-        }
-
-        // Add noreply user and support user to the list, if they don't exist.
-        $supportuser = core_user::get_support_user();
-        if (!isset($strangers[$supportuser->id]) && !$supportuser->deleted) {
-            $supportuser->messagecount = message_count_unread_messages($USER, $supportuser);
-            if ($supportuser->messagecount > 0) {
-                $supportuser->fullname = fullname($supportuser);
-                $supportuser->unread = $supportuser->messagecount;
-                $allcontacts['strangers'][$supportuser->id] = $supportuser;
+                $allcontacts[$mode][$key] = $newcontact;
             }
         }
-
-        $noreplyuser = core_user::get_noreply_user();
-        if (!isset($strangers[$noreplyuser->id]) && !$noreplyuser->deleted) {
-            $noreplyuser->messagecount = message_count_unread_messages($USER, $noreplyuser);
-            if ($noreplyuser->messagecount > 0) {
-                $noreplyuser->fullname = fullname($noreplyuser);
-                $noreplyuser->unread = $noreplyuser->messagecount;
-                $allcontacts['strangers'][$noreplyuser->id] = $noreplyuser;
-            }
-        }
-
         return $allcontacts;
     }
 
@@ -1529,13 +1486,8 @@ class core_message_external extends external_api {
             foreach ($messages as $mid => $message) {
 
                 // Do not return deleted messages.
-                if (!$message->notification) {
-                    if (($useridto == $USER->id and $message->timeusertodeleted) or
+                if (($useridto == $USER->id and $message->timeusertodeleted) or
                         ($useridfrom == $USER->id and $message->timeuserfromdeleted)) {
-                        unset($messages[$mid]);
-                        continue;
-                    }
-                }
 
                 // We need to get the user from the query.
                 if (empty($userfromfullname)) {
@@ -1559,6 +1511,11 @@ class core_message_external extends external_api {
                     $message->usertofullname = fullname($user, $canviewfullname);
                 } else {
                     $message->usertofullname = $usertofullname;
+                }
+
+                // This field is only available in the message_read table.
+                if (!isset($message->timeread)) {
+                    $message->timeread = 0;
                 }
 
                 $message->text = message_format_message_text($message);
@@ -1674,7 +1631,7 @@ class core_message_external extends external_api {
             throw new moodle_exception('accessdenied', 'admin');
         }
 
-        \core_message\api::mark_all_notifications_as_read($useridto, $useridfrom);
+        \core_message\api::mark_all_read_for_user($useridto, $useridfrom, MESSAGE_TYPE_NOTIFICATION);
 
         return true;
     }
@@ -1813,7 +1770,7 @@ class core_message_external extends external_api {
         }
 
         // Now, we can get safely all the blocked users.
-        $users = \core_message\api::get_blocked_users($user->id);
+        $users = message_get_blocked_users($user);
 
         $blockedusers = array();
         foreach ($users as $user) {
@@ -1869,7 +1826,7 @@ class core_message_external extends external_api {
     public static function mark_message_read_parameters() {
         return new external_function_parameters(
             array(
-                'messageid' => new external_value(PARAM_INT, 'id of the message in the messages table'),
+                'messageid' => new external_value(PARAM_INT, 'id of the message (in the message table)'),
                 'timeread' => new external_value(PARAM_INT, 'timestamp for when the message should be marked read',
                     VALUE_DEFAULT, 0)
             )
@@ -1914,31 +1871,16 @@ class core_message_external extends external_api {
         $context = context_system::instance();
         self::validate_context($context);
 
-        $sql = "SELECT m.*, mcm.userid as useridto
-                  FROM {messages} m
-            INNER JOIN {message_conversations} mc
-                    ON m.conversationid = mc.id
-            INNER JOIN {message_conversation_members} mcm
-                    ON mcm.conversationid = mc.id
-             LEFT JOIN {message_user_actions} mua
-                    ON (mua.messageid = m.id AND mua.userid = ? AND mua.action = ?)
-                 WHERE mua.id is NULL
-                   AND mcm.userid != m.useridfrom
-                   AND m.id = ?";
-        $messageparams = [];
-        $messageparams[] = $USER->id;
-        $messageparams[] = \core_message\api::MESSAGE_ACTION_READ;
-        $messageparams[] = $params['messageid'];
-        $message = $DB->get_record_sql($sql, $messageparams, MUST_EXIST);
+        $message = $DB->get_record('message', array('id' => $params['messageid']), '*', MUST_EXIST);
 
         if ($message->useridto != $USER->id) {
             throw new invalid_parameter_exception('Invalid messageid, you don\'t have permissions to mark this message as read');
         }
 
-        \core_message\api::mark_message_as_read($USER->id, $message, $timeread);
+        $messageid = message_mark_message_read($message, $timeread);
 
         $results = array(
-            'messageid' => $message->id,
+            'messageid' => $messageid,
             'warnings' => $warnings
         );
         return $results;
@@ -1953,92 +1895,7 @@ class core_message_external extends external_api {
     public static function mark_message_read_returns() {
         return new external_single_structure(
             array(
-                'messageid' => new external_value(PARAM_INT, 'the id of the message in the messages table'),
-                'warnings' => new external_warnings()
-            )
-        );
-    }
-
-    /**
-     * Returns description of method parameters
-     *
-     * @return external_function_parameters
-     */
-    public static function mark_notification_read_parameters() {
-        return new external_function_parameters(
-            array(
-                'notificationid' => new external_value(PARAM_INT, 'id of the notification'),
-                'timeread' => new external_value(PARAM_INT, 'timestamp for when the notification should be marked read',
-                    VALUE_DEFAULT, 0)
-            )
-        );
-    }
-
-    /**
-     * Mark a single notification as read.
-     *
-     * This will trigger a 'notification_viewed' event.
-     *
-     * @param int $notificationid id of the notification
-     * @param int $timeread timestamp for when the notification should be marked read
-     * @return external_description
-     * @throws invalid_parameter_exception
-     * @throws moodle_exception
-     */
-    public static function mark_notification_read($notificationid, $timeread) {
-        global $CFG, $DB, $USER;
-
-        // Check if private messaging between users is allowed.
-        if (empty($CFG->messaging)) {
-            throw new moodle_exception('disabled', 'message');
-        }
-
-        // Warnings array, it can be empty at the end but is mandatory.
-        $warnings = array();
-
-        // Validate params.
-        $params = array(
-            'notificationid' => $notificationid,
-            'timeread' => $timeread
-        );
-        $params = self::validate_parameters(self::mark_notification_read_parameters(), $params);
-
-        if (empty($params['timeread'])) {
-            $timeread = time();
-        } else {
-            $timeread = $params['timeread'];
-        }
-
-        // Validate context.
-        $context = context_system::instance();
-        self::validate_context($context);
-
-        $notification = $DB->get_record('notifications', ['id' => $params['notificationid']], '*', MUST_EXIST);
-
-        if ($notification->useridto != $USER->id) {
-            throw new invalid_parameter_exception('Invalid notificationid, you don\'t have permissions to mark this ' .
-                'notification as read');
-        }
-
-        \core_message\api::mark_notification_as_read($notification, $timeread);
-
-        $results = array(
-            'notificationid' => $notification->id,
-            'warnings' => $warnings
-        );
-
-        return $results;
-    }
-
-    /**
-     * Returns description of method result value
-     *
-     * @return external_description
-     */
-    public static function mark_notification_read_returns() {
-        return new external_single_structure(
-            array(
-                'notificationid' => new external_value(PARAM_INT, 'id of the notification'),
+                'messageid' => new external_value(PARAM_INT, 'the id of the message in the message_read table'),
                 'warnings' => new external_warnings()
             )
         );
@@ -2113,13 +1970,7 @@ class core_message_external extends external_api {
             throw new moodle_exception('accessdenied', 'admin');
         }
 
-        if ($useridfrom) {
-            if ($conversationid = \core_message\api::get_conversation_between_users([$useridto, $useridfrom])) {
-                \core_message\api::mark_all_messages_as_read($useridto, $conversationid);
-            }
-        } else {
-            \core_message\api::mark_all_messages_as_read($useridto);
-        }
+        \core_message\api::mark_all_read_for_user($useridto, $useridfrom, MESSAGE_TYPE_MESSAGE);
 
         return true;
     }
@@ -2239,7 +2090,7 @@ class core_message_external extends external_api {
      * @since 3.1
      */
     public static function delete_message($messageid, $userid, $read = true) {
-        global $CFG;
+        global $CFG, $DB;
 
         // Check if private messaging between users is allowed.
         if (empty($CFG->messaging)) {
@@ -2261,11 +2112,15 @@ class core_message_external extends external_api {
         $context = context_system::instance();
         self::validate_context($context);
 
+        $messagestable = $params['read'] ? 'message_read' : 'message';
+        $message = $DB->get_record($messagestable, array('id' => $params['messageid']), '*', MUST_EXIST);
+
         $user = core_user::get_user($params['userid'], '*', MUST_EXIST);
         core_user::require_active_user($user);
 
-        if (\core_message\api::can_delete_message($user->id, $messageid)) {
-            $status = \core_message\api::delete_message($user->id, $messageid);
+        $status = false;
+        if (message_can_delete_message($message, $user->id)) {
+            $status = message_delete_message($message, $user->id);;
         } else {
             throw new moodle_exception('You do not have permission to delete this message');
         }

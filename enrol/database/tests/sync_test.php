@@ -96,7 +96,11 @@ class enrol_database_testcase extends advanced_testcase {
                 break;
 
             case 'mssql':
-                set_config('dbtype', 'mssqlnative', 'enrol_database');
+                if (get_class($DB) == 'mssql_native_moodle_database') {
+                    set_config('dbtype', 'mssql_n', 'enrol_database');
+                } else {
+                    set_config('dbtype', 'mssqlnative', 'enrol_database');
+                }
                 set_config('dbsybasequoting', '1', 'enrol_database');
                 break;
 

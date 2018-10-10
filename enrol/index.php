@@ -65,17 +65,44 @@ if (\core\session\manager::is_loggedinas() and $USER->loginascontext->contextlev
 $enrols = enrol_get_plugins(true);
 $enrolinstances = enrol_get_instances($course->id, true);
 $forms = array();
+//enrolinstances son los datos de la tabla enrol
+$numeroparti = 0;
+$sql = 'select COUNT(*) as n from modl_user_enrolments m, modl_enrol e, modl_course c
+WHERE c.id=e.courseid and e.id = m.enrolid and c.id = '.$course->id.
+' group by m.enrolid';
+$numeroparti = $DB->get_records_sql($sql);
+foreach($numeroparti as $aux){
+$cuposoc=$aux->n;
+}
+//print_r($enrols);
 foreach($enrolinstances as $instance) {
+	//echo '<br />inst '. $instance->enrol.'<br />';
+//si la instancia es selt(automatriculacion) seguira al $form
     if (!isset($enrols[$instance->enrol])) {
         continue;
     }
+//echo 'INSTANCE>>>>>'.$instance->enrol.'<<<<<<';
+//$mensaje = "Hola";
+//print "<script>alert('$mensaje')</script>";
+//print_r($instance);
+
     $form = $enrols[$instance->enrol]->enrol_page_hook($instance);
+    //print_r($enrols[$instance->enrol]);
+//echo'>>>>>>>>>>>>>FORM';
+    //print_r($enrols[$instance->enrol]);
+    //print_r($form);
     if ($form) {
-        $forms[$instance->id] = $form;
+	if ($cuposoc < $course->quote){
+        	$forms[$instance->id] = $form;
+		//echo $form;
+	}
     }
+    //print_r($enrols[$instance->enrol]);
 }
 
+
 // Check if user already enrolled
+//print_r($context);
 if (is_enrolled($context, $USER, '', true)) {
     if (!empty($SESSION->wantsurl)) {
         $destination = $SESSION->wantsurl;
@@ -101,7 +128,7 @@ echo $courserenderer->course_info_box($course);
 foreach ($forms as $form) {
     echo $form;
 }
-
+//echo '000';
 if (!$forms) {
     if (isguestuser()) {
         notice(get_string('noguestaccess', 'enrol'), get_login_url());

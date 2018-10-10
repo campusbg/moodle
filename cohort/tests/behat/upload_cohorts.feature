@@ -50,7 +50,7 @@ Feature: A privileged user can create cohorts using a CSV file
     And the "class" attribute of "cohort name 5" "table_row" should contain "dimmed_text"
     And ".dimmed_text" "css_element" should not exist in the "cohort name 6" "table_row"
 
-  @javascript @_file_upload
+  @javascript
   Scenario: Upload cohorts with default category context as admin
     When I log in as "admin"
     And I navigate to "Users > Accounts >Cohorts" in site administration
@@ -81,7 +81,7 @@ Feature: A privileged user can create cohorts using a CSV file
       | Cat 2         | cohort name 5 | cohortid5 |                   | 0           | Created manually |
       | Cat 3         | cohort name 6 | cohortid6 |                   | 0           | Created manually |
 
-  @javascript @_file_upload
+  @javascript
   Scenario: Upload cohorts with default category context as manager
     Given the following "users" exist:
       | username | firstname | lastname | email                  |
@@ -107,7 +107,7 @@ Feature: A privileged user can create cohorts using a CSV file
     And I press "Upload cohorts"
     And I should see "Uploaded 6 cohorts"
 
-  @javascript @_file_upload
+  @javascript
   Scenario: Upload cohorts with conflicting id number
     Given the following "cohorts" exist:
       | name   | idnumber  |
@@ -128,7 +128,7 @@ Feature: A privileged user can create cohorts using a CSV file
       | cohort name 6 | cohortid6 |  | Cat 3 |  |
     And "Upload cohorts" "button" should not exist
 
-  @javascript @_file_upload
+  @javascript
   Scenario: Upload cohorts with different ways of specifying context
     When I log in as "admin"
     And I navigate to "Users > Accounts >Cohorts" in site administration

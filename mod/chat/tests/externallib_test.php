@@ -290,6 +290,8 @@ class mod_chat_external_testcase extends externallib_advanced_testcase {
         $this->assertCount(2, $chats['chats']);
 
     }
+<<<<<<< HEAD
+=======
 
     /**
      * Test get_sessions_empty_chat
@@ -493,4 +495,5 @@ class mod_chat_external_testcase extends externallib_advanced_testcase {
         }
         $this->assertEquals(2, $found);
     }
+>>>>>>> master
 }

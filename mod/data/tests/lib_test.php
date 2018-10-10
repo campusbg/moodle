@@ -1643,10 +1643,9 @@ class mod_data_lib_testcase extends advanced_testcase {
      * @param int $courseid
      * @param int $instanceid The data id.
      * @param string $eventtype The event type. eg. DATA_EVENT_TYPE_OPEN.
-     * @param int|null $timestart The start timestamp for the event
      * @return bool|calendar_event
      */
-    private function create_action_event($courseid, $instanceid, $eventtype, $timestart = null) {
+    private function create_action_event($courseid, $instanceid, $eventtype) {
         $event = new stdClass();
         $event->name = 'Calendar event';
         $event->modulename  = 'data';
@@ -1654,11 +1653,7 @@ class mod_data_lib_testcase extends advanced_testcase {
         $event->instance = $instanceid;
         $event->type = CALENDAR_EVENT_TYPE_ACTION;
         $event->eventtype = $eventtype;
-        if ($timestart) {
-            $event->timestart = $timestart;
-        } else {
-            $event->timestart = time();
-        }
+        $event->timestart = time();
 
         return calendar_event::create($event);
     }
@@ -1700,6 +1695,8 @@ class mod_data_lib_testcase extends advanced_testcase {
         $this->assertEquals(mod_data_get_completion_active_rule_descriptions($moddefaults), $activeruledescriptions);
         $this->assertEquals(mod_data_get_completion_active_rule_descriptions(new stdClass()), []);
     }
+<<<<<<< HEAD
+=======
 
     /**
      * An unknown event type should not change the data instance.
@@ -2009,4 +2006,5 @@ class mod_data_lib_testcase extends advanced_testcase {
         );
         $generator->create_instance($params);
     }
+>>>>>>> master
 }

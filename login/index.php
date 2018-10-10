@@ -52,6 +52,7 @@ if ($testsession) {
         }
         unset($SESSION->wantsurl);
         redirect($urltogo);
+        //redirect($CFG->wwwroot . '/?redirect=0');//ya queda configurado en apariencia/navegacion
     } else {
         // TODO: try to find out what is the exact reason why sessions do not work
         $errormsg = get_string("cookiesnotenabled");

@@ -1495,7 +1495,7 @@ class theme_config {
             // Compile!
             $compiled = $compiler->to_css();
 
-        } catch (\Exception $e) {
+        } catch (\Leafo\ScssPhp\Exception $e) {
             $compiled = false;
             debugging('Error while compiling SCSS: ' . $e->getMessage(), DEBUG_DEVELOPER);
         }

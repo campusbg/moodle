@@ -127,7 +127,7 @@ body:not(.jsenabled) .langmenu:hover > .dropdown-menu,
 }
 
 // Set menus in the fixed header to scroll vertically when they are longer than the page.
-.navbar.fixed-top .dropdown .dropdown-menu {
+.navbar-static-top .dropdown .dropdown-menu {
     max-height: calc(100vh - #{$navbar-height});
     overflow-y: auto;
 }

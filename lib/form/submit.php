@@ -65,6 +65,8 @@ class MoodleQuickForm_submit extends HTML_QuickForm_submit implements templatabl
         } else {
             $this->primary = $primary;
         }
+//echo 'constructor
+//';
     }
 
     /**
@@ -75,6 +77,9 @@ class MoodleQuickForm_submit extends HTML_QuickForm_submit implements templatabl
     public function MoodleQuickForm_submit($elementName=null, $value=null, $attributes=null, $primary = null) {
         debugging('Use of class name as constructor is deprecated', DEBUG_DEVELOPER);
         self::__construct($elementName, $value, $attributes, $primary);
+//echo 'function MoodleQuickForm_submit
+//';
+
     }
 
     /**
@@ -86,17 +91,34 @@ class MoodleQuickForm_submit extends HTML_QuickForm_submit implements templatabl
      */
     function onQuickFormEvent($event, $arg, &$caller)
     {
+//echo 'onQuickFormEvents '.$event.' arg '. $arg.'
+//';
+//print_r($arg);
+//foreach($arg as $a){
+//echo '>> '. $a.'
+//';
+//}
+
         switch ($event) {
             case 'createElement':
                 parent::onQuickFormEvent($event, $arg, $caller);
+$wer=$caller->isNoSubmitButton($arg[0]);
+		//echo 'prueba444-'.$this->getAttribute('onclick').'
+//';
+//print_r($caller);
                 if ($caller->isNoSubmitButton($arg[0])){
                     //need this to bypass client validation
                     //for buttons that submit but do not process the
                     //whole form.
+		//echo 'prueba555
+//';
+
                     $onClick = $this->getAttribute('onclick');
                     $skip = 'skipClientValidation = true;';
                     $onClick = ($onClick !== null)?$skip.' '.$onClick:$skip;
                     $this->updateAttributes(array('onclick'=>$onClick));
+			//echo 'Onclick '.$onClick.'
+//';
                 }
                 return true;
                 break;
@@ -127,10 +149,24 @@ class MoodleQuickForm_submit extends HTML_QuickForm_submit implements templatabl
     }
 
     public function export_for_template(renderer_base $output) {
+
         $context = $this->export_for_template_base($output);
         if (!$this->primary) {
             $context['secondary'] = true;
         }
+//print_r($context);
+
+//if($context[value] == 'Matricularme'){
+	//echo 'holiboliiiii
+		//';
+//$matricula = array('onclick' => 'MiFuncionJS()');
+//$res = array_merge($matricula, $context);
+//print_r($res);
+//}else{
+//$res = $context;
+//}
+
+
         return $context;
     }
 }

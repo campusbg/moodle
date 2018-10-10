@@ -370,8 +370,6 @@ class core_calendar_external extends external_api {
                             'description' => new external_value(PARAM_RAW, 'Description', VALUE_OPTIONAL, null, NULL_ALLOWED),
                             'format' => new external_format_value('description'),
                             'courseid' => new external_value(PARAM_INT, 'course id'),
-                            'categoryid' => new external_value(PARAM_INT, 'Category id (only for category events).',
-                                VALUE_OPTIONAL),
                             'groupid' => new external_value(PARAM_INT, 'group id'),
                             'userid' => new external_value(PARAM_INT, 'user id'),
                             'repeatid' => new external_value(PARAM_INT, 'repeat id'),
@@ -519,7 +517,7 @@ class core_calendar_external extends external_api {
             $params['aftereventid'] = null;
         }
 
-        $courses = enrol_get_my_courses('*', null, 0, [$courseid]);
+        $courses = enrol_get_my_courses('*', 'visible DESC,sortorder ASC', 0, [$courseid]);
         $courses = array_values($courses);
 
         if (empty($courses)) {
@@ -604,7 +602,7 @@ class core_calendar_external extends external_api {
         }
 
         $renderer = $PAGE->get_renderer('core_calendar');
-        $courses = enrol_get_my_courses('*', null, 0, $params['courseids']);
+        $courses = enrol_get_my_courses('*', 'visible DESC,sortorder ASC', 0, $params['courseids']);
         $courses = array_values($courses);
 
         if (empty($courses)) {
@@ -977,10 +975,9 @@ class core_calendar_external extends external_api {
      * @param   int     $courseid The course to be included
      * @param   int     $categoryid The category to be included
      * @param   bool    $includenavigation Whether to include navigation
-     * @param   bool    $mini Whether to return the mini month view or not
      * @return  array
      */
-    public static function get_calendar_monthly_view($year, $month, $courseid, $categoryid, $includenavigation, $mini) {
+    public static function get_calendar_monthly_view($year, $month, $courseid, $categoryid, $includenavigation) {
         global $CFG, $DB, $USER, $PAGE;
         require_once($CFG->dirroot."/calendar/lib.php");
 
@@ -991,7 +988,6 @@ class core_calendar_external extends external_api {
             'courseid' => $courseid,
             'categoryid' => $categoryid,
             'includenavigation' => $includenavigation,
-            'mini' => $mini,
         ]);
 
         $context = \context_user::instance($USER->id);
@@ -1004,8 +1000,7 @@ class core_calendar_external extends external_api {
         $calendar = \calendar_information::create($time, $params['courseid'], $params['categoryid']);
         self::validate_context($calendar->context);
 
-        $view = $params['mini'] ? 'mini' : 'month';
-        list($data, $template) = calendar_get_view($calendar, $view, $params['includenavigation']);
+        list($data, $template) = calendar_get_view($calendar, 'month', $params['includenavigation']);
 
         return $data;
     }
@@ -1027,13 +1022,6 @@ class core_calendar_external extends external_api {
                     'Whether to show course navigation',
                     VALUE_DEFAULT,
                     true,
-                    NULL_ALLOWED
-                ),
-                'mini' => new external_value(
-                    PARAM_BOOL,
-                    'Whether to return the mini month view or not',
-                    VALUE_DEFAULT,
-                    false,
                     NULL_ALLOWED
                 ),
             ]

@@ -23,13 +23,12 @@ Javascript:
 This theme uses the transpiled javascript from bootstrap4 as amd modules.
 
 To update the javascript files:
-Checkout the latest branch of bootstrap to a folder, Run the follwing inside the cloned Bootstrap repository:
+Checkout the latest branch of bootstrap to a folder, in that folder run:
 
-```
-$ npm install @babel/cli@7.0.0-beta.37 @babel/preset-env@7.0.0-beta.37 babel-plugin-transform-es2015-modules-amd @babel/plugin-proposal-object-rest-spread
-$ mkdir out
-$ ./node_modules/@babel/cli/bin/babel.js --presets @babel/preset-env --plugins transform-es2015-modules-amd,@babel/plugin-proposal-object-rest-spread -d ./out/ js/src/
-```
+> mkdir "out"
+> npm install babel-cli babel-preset-es2015 babel-plugin-transform-es2015-modules-amd
+> ./node_modules/babel-cli/bin/babel.js --presets es2015 --plugins transform-es2015-modules-amd -d out/ js/src/
 
 Copy the transpiled files from out/ into the amd/src/ folder for the theme.
-Run grunt to re-compile the JS files. (thanks to Joby Harding)
+Run grunt to re-compile the JS files.
+

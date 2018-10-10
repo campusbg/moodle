@@ -1485,6 +1485,8 @@ function mod_chat_core_calendar_provide_event_action(calendar_event $event,
         );
     }
 }
+<<<<<<< HEAD
+=======
 
 /**
  * Given a set of messages for a chat, return the completed chat sessions (including optionally not completed ones).
@@ -1585,3 +1587,4 @@ function chat_get_session_messages($chatid, $group = false, $start = 0, $end = 0
 
     return $DB->get_records_select('chat_messages', $select, $params, $sort);
 }
+>>>>>>> master

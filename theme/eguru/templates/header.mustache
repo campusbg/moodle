@@ -1,0 +1,163 @@
+{{!
+    This file is part of Moodle - http://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+}}
+{{!
+    @template theme_eguru/footer.
+    Eguru footer layout template.
+}}
+
+{{!
+    @template theme_eguru/header.
+    Eguru header layout template.
+}}
+<header id="header" role="banner" class="pos-f-t navbar navbar-full navbar-light bg-faded navbar-static-top moodle-has-zindex">
+  <div class="header-menubar">
+    <div class="container">
+      <div class="navbar">
+        <div class="navbar-inner" class="row">
+          <div data-region="drawer-toggle" class="col-sm-1">
+            <button aria-expanded="{{#navdraweropen}}true{{/navdraweropen}}{{^navdraweropen}}false{{/navdraweropen}}" aria-controls="nav-drawer" type="button" class="btn pull-xs-left m-r-1 btn-secondary" data-action="toggle-drawer" data-side="left" data-preference="drawer-open-nav">
+            <span aria-hidden="true">&#9776;</span>
+            <span class="sr-only"></span>
+            <span></span>
+            <span></span>
+            <span></span>
+            </button>
+          </div>
+
+	  <div class="header-logo" class="col-sm-6">
+            <a class="navbar-brand" href="{{{ config.wwwroot }}}/?redirect=0">
+              <img src="{{logo}}" width="227" height="60" alt="Eguru">
+            </a>
+          </div>
+
+
+          <div class="custom-menu visible-desktop" class="col-sm-2">
+            <ul>
+            {{{ output.user_menu }}}
+            </ul>
+          </div>
+
+          <a href="#" class="brand" style="display: none;">Eguru</a>
+          {{{ output.navbar_plugin_output }}}
+
+          <div id="Mainmenu" class="nav-collapse collapse navbar-responsive-collapse">
+            {{{output.custom_menu}}}
+            <div class="custom-nav-search">
+
+              <form action="{{{surl}}}" method="get">
+                <div class="fields-wrap">
+                <input type="text" placeholder="<?php echo get_string('searchcourses'); ?>" name="search">
+                <div class="btn-search fa fa-search"><input type="submit" value="Search"></div>
+                </div>
+              </form>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+
+</header>
+
+<div class="header-main" class="row">
+    <div class="container" class="col-md-12">
+
+
+            <div class="custom-menu">
+              <ul class="navbar-nav mr-auto">
+
+
+	<div class="redes" >
+
+	{{# gpurl}}
+		<span class="fa-stack">
+                 <a href="{{gpurl}}" target="_blank" class="fa fa-instagram fa-inverse"></a>
+		</span>
+        {{/ gpurl}}
+	{{# pinurl}}
+		<span class="fa-stack">
+                 <a href="{{pinurl}}" target="_blank" class="fa fa-youtube fa-inverse"></a>
+		</span>
+        {{/ pinurl}}
+	{{# twurl}}
+		<span class="fa-stack">
+                 <a href="{{twurl}}" target="_blank" class="fa {{tw}} fa-inverse"></a>
+		</span>
+        {{/ twurl}}
+	{{# fburl}}
+		<span class="fa-stack">
+                 <a href="{{fburl}}" target="_blank" class="fa {{fb}} fa-inverse"></a>
+		</span>
+        {{/ fburl}}
+<!--
+		<span class="fa-stack">
+		<a href="https://www.youtube.com/user/BancoGuayaquil" target="_blank"  class="fa fa-youtube fa-inverse"></a></span>
+		<span class="fa-stack">
+		<a href="https://www.instagram.com/BancoGuayaquil/" target="_blank"  class="fa fa-instagram fa-inverse"></a></span>
+		<span class="fa-stack">
+		<a href="https://twitter.com/BancoGuayaquil" target="_blank" class="fa fa-twitter fa-inverse" ></a></span>
+		<span class="fa-stack">
+		<a href="https://www.facebook.com/BancoGuayaquil" target="_blank" class="fa fa-lg fa-facebook fa-inverse"></a></span>
+-->
+	</div>
+
+                <!--{{{output.custom_menu}}}
+                {{{ output.search_box }}}-->
+              </ul>
+            </div>
+            <div class="clearfix"></div>
+
+      <nav class="navbar navbar-toggleable-md" class="col-md-6">
+
+<!--          <button class="navbar-toggler navbar-toggler-right" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+          </button>
+
+          <div class="header-logo">
+            <a class="navbar-brand" href="{{{ config.wwwroot }}}/?redirect=0">
+              <img src="{{logo}}" width="183" height="67" alt="Eguru">
+            </a>
+          </div>
+-->
+
+          <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <div class="custom-menu">
+              <ul class="navbar-nav mr-auto">
+
+
+	<div class="redes" >	
+		<span class="fa-stack">
+		<a href="#" target="_blank"  class="fa fa-youtube fa-inverse"></a></span>
+		<span class="fa-stack">
+		<a href="#" target="_blank"  class="fa fa-instagram fa-inverse"></a></span>
+		<span class="fa-stack">
+		<a href="#" target="_blank" class="fa fa-twitter fa-inverse" ></a></span>
+		<span class="fa-stack">
+		<a href="#" target="_blank" class="fa fa-lg fa-facebook fa-inverse"></a></span>
+	</div>
+
+                <!--{{{output.custom_menu}}}
+                {{{ output.search_box }}}-->
+              </ul>
+            </div>
+            <div class="clearfix"></div>
+          </div>
+      </nav>
+    </div>
+  </div>
+<!--E.O.Header-->

@@ -1226,9 +1226,10 @@ function glossary_print_entry_icons($course, $cm, $glossary, $entry, $mode='',$h
 
     $context = context_module::instance($cm->id);
 
-    $output = false;   // To decide if we must really return text in "return". Activate when needed only!
+    $output = false;   //To decide if we must really return text in "return". Activate when needed only!
     $importedentry = ($entry->sourceglossaryid == $glossary->id);
     $ismainglossary = $glossary->mainglossary;
+
 
     $return = '<span class="commands">';
     // Differentiate links for each entry.
@@ -1240,6 +1241,8 @@ function glossary_print_entry_icons($course, $cm, $glossary, $entry, $mode='',$h
             array('class' => 'glossary-hidden-note'));
     }
 
+<<<<<<< HEAD
+=======
     if ($entry->approved || has_capability('mod/glossary:approve', $context)) {
         $output = true;
         $return .= \html_writer::link(
@@ -1249,6 +1252,7 @@ function glossary_print_entry_icons($course, $cm, $glossary, $entry, $mode='',$h
         );
     }
 
+>>>>>>> master
     if (has_capability('mod/glossary:approve', $context) && !$glossary->defaultapproval && $entry->approved) {
         $output = true;
         $return .= '<a class="icon" title="' . get_string('disapprove', 'glossary').

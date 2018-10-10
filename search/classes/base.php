@@ -285,14 +285,6 @@ abstract class base {
      * The default implementation returns false, indicating that this facility is not supported and
      * the older get_recordset_by_timestamp function should be used.
      *
-     * This function must accept all possible values for the $context parameter. For example, if
-     * you are implementing this function for the forum module, it should still operate correctly
-     * if called with the context for a glossary module, or for the HTML block. (In these cases
-     * where it will not return any data, it may return null.)
-     *
-     * The $context parameter can also be null or the system context; both of these indicate that
-     * all data, without context restriction, should be returned.
-     *
      * @param int $modifiedfrom Return only records modified after this date
      * @param \context|null $context Context (null means no context restriction)
      * @return \moodle_recordset|null|false Recordset / null if no results / false if not supported
@@ -300,19 +292,6 @@ abstract class base {
      */
     public function get_document_recordset($modifiedfrom = 0, \context $context = null) {
         return false;
-    }
-
-    /**
-     * Checks if get_document_recordset is supported for this search area.
-     *
-     * For many uses you can simply call get_document_recordset and see if it returns false, but
-     * this function is useful when you don't want to actually call the function right away.
-     */
-    public function supports_get_document_recordset() {
-        // Easiest way to check this is simply to see if the class has overridden the default
-        // function.
-        $method = new \ReflectionMethod($this, 'get_document_recordset');
-        return $method->getDeclaringClass()->getName() !== self::class;
     }
 
     /**

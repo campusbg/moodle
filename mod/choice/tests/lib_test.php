@@ -1268,6 +1268,8 @@ class mod_choice_lib_testcase extends externallib_advanced_testcase {
         $this->expectException('moodle_exception');
         choice_user_submit_response($optionids[1], $choicewithoptions, $user2->id, $course, $cm);
     }
+<<<<<<< HEAD
+=======
 
     /**
      * A user who does not have capabilities to add events to the calendar should be able to create an choice.
@@ -1291,4 +1293,5 @@ class mod_choice_lib_testcase extends externallib_advanced_testcase {
         );
         $generator->create_instance($params);
     }
+>>>>>>> master
 }

@@ -19,6 +19,13 @@
     $switchrole  = optional_param('switchrole',-1, PARAM_INT); // Deprecated, use course/switchrole.php instead.
     $return      = optional_param('return', 0, PARAM_LOCALURL);
 
+    global $USER;
+    $idUser             = $USER->id; // User id.
+    $courseid       = optional_param('course', SITEID, PARAM_INT); // course id (defaults to Site).
+    $showallcourses = optional_param('showallcourses', 0, PARAM_INT);
+    
+    $uid          = optional_param('id', 0, PARAM_INT);
+
     $params = array();
     if (!empty($name)) {
         $params = array('shortname' => $name);
@@ -31,7 +38,40 @@
     }
 
     $course = $DB->get_record('course', $params, '*', MUST_EXIST);
-
+    /**
+     * Si un curso tiene politicas activas se redirecciona primero a la pagina 
+     * de politicas
+     */
+    $aux = $DB->get_record('course', $params, 'politician', MUST_EXIST);
+    //print_r($OUTPUT);
+    //echo $aux->politician;
+    //$sql='insert into politicas_curso (courseid, userid,fechapolitica,politician) 
+    //VALUES('.$course->id.','.$idUser.',DATE(\''.(new \DateTime())->format('Y-m-d H:i:s').'\'),1)';
+    //echo $sql;
+    //$DB->execute($sql);
+    //$sql2 =
+    $sql = 'select politician from politicas_curso p
+    WHERE p.courseid = '.$course->id.' and p.userid = '.$idUser;
+    //$politicas = $DB->get_records_sql($sql);
+    $flag = $DB->get_record_sql($sql);
+    //echo 'sql-'.$sql;
+    if(empty($flag)){
+        $aux2 = 0;
+    }else{
+        $aux2 = 1;
+    }
+    //echo 'aux: '.$aux->politician.' aux2: '.$aux2;
+    if($aux->politician == 1 && $aux2 == 0){
+        //echo 'funcionaaaa111!';
+        //if($flag){
+            $PAGE->set_url('/course/politician.php', array('userid'=>$idUser,'courseid'=>$course->id));
+            //echo 'funcionaaaa222!';
+            redirect($PAGE->url);
+        //}
+        
+    }
+    
+    
     $urlparams = array('id' => $course->id);
 
     // Sectionid should get priority over section number
@@ -257,7 +297,12 @@
     }
 
     // Course wrapper start.
-    echo html_writer::start_tag('div', array('class'=>'course-content'));
+	//imagen de background del contenido de los curos
+    //$imgback = theme_eguru_get_filearea('imgbackdefaultimage');
+    //if(!empty($imgback))
+    //echo html_writer::start_tag('img', array('style' => 'position: absolute; opacity: 0.5; height: auto; width: 100%; top: -50%', 'src' => '//campusbg.bancoguayaquil.com/campusbg/pluginfile.php/1/theme_eguru/imgbackdefault/1532644209' . $imgback , 'alt' => 'imgb'));
+
+    echo html_writer::start_tag('div', array('class'=>'course-content', 'style' =>'position: absolute; top: 18px; left: 16px; margin-right: 25px;'));
 
     // make sure that section 0 exists (this function will create one if it is missing)
     course_create_sections_if_missing($course, 0);
@@ -281,6 +326,7 @@
     // Content wrapper end.
 
     echo html_writer::end_tag('div');
+    //echo 'prueba';
 
     // Trigger course viewed event.
     // We don't trust $context here. Course format inclusion above executes in the global space. We can't assume

@@ -22,8 +22,6 @@
  * @copyright  2006 The Open University
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-use core_tag\output\tag;
-
 
 defined('MOODLE_INTERNAL') || die();
 
@@ -76,10 +74,7 @@ class core_questionlib_testcase extends advanced_testcase {
         $category = $this->getDataGenerator()->create_category();
 
         // Create course.
-        $course = $this->getDataGenerator()->create_course(array(
-            'numsections' => 5,
-            'category' => $category->id
-        ));
+        $course = $this->getDataGenerator()->create_course(array('numsections' => 5));
 
         $options = array(
             'course' => $course->id,
@@ -91,22 +86,12 @@ class core_questionlib_testcase extends advanced_testcase {
 
         $qgen = $this->getDataGenerator()->get_plugin_generator('core_question');
 
-        switch ($type) {
-            case 'course':
-                $context = context_course::instance($course->id);
-                break;
-
-            case 'category':
-                $context = context_coursecat::instance($category->id);
-                break;
-
-            case 'system':
-                $context = context_system::instance();
-                break;
-
-            default:
-                $context = context_module::instance($quiz->cmid);
-                break;
+        if ('course' == $type) {
+            $context = context_course::instance($course->id);
+        } else if ('category' == $type) {
+            $context = context_coursecat::instance($category->id);
+        } else {
+            $context = context_module::instance($quiz->cmid);
         }
 
         $qcat = $qgen->create_question_category(array('contextid' => $context->id));
@@ -264,8 +249,8 @@ class core_questionlib_testcase extends advanced_testcase {
         $rc->execute_plan();
 
         // Get the created question category.
-        $restoredcategory = $DB->get_record_select('question_categories', 'contextid = ? AND parent <> 0',
-                array(context_course::instance($course2->id)->id), '*', MUST_EXIST);
+        $restoredcategory = $DB->get_record('question_categories', array('contextid' => context_course::instance($course2->id)->id),
+            '*', MUST_EXIST);
 
         // Check that there are two questions in the restored to course's context.
         $this->assertEquals(2, $DB->count_records('question', array('category' => $restoredcategory->id)));
@@ -349,7 +334,6 @@ class core_questionlib_testcase extends advanced_testcase {
         $this->assertEquals(0, $DB->count_records('question', $criteria));
 
         // Test that the feedback works.
-        $expected[] = array('top', get_string('unusedcategorydeleted', 'question'));
         $expected[] = array($qcat->name, get_string('unusedcategorydeleted', 'question'));
         $this->assertEquals($expected, $result);
     }
@@ -484,8 +468,6 @@ class core_questionlib_testcase extends advanced_testcase {
     public function test_question_remove_stale_questions_from_category() {
         global $DB;
         $this->resetAfterTest(true);
-        $this->setAdminUser();
-
         $dg = $this->getDataGenerator();
         $course = $dg->create_course();
         $quiz = $dg->create_module('quiz', ['course' => $course->id]);
@@ -495,28 +477,18 @@ class core_questionlib_testcase extends advanced_testcase {
 
         $qcat1 = $qgen->create_question_category(['contextid' => $context->id]);
         $q1a = $qgen->create_question('shortanswer', null, ['category' => $qcat1->id]);     // Will be hidden.
+        $q1b = $qgen->create_question('random', null, ['category' => $qcat1->id]);          // Will not be used.
         $DB->set_field('question', 'hidden', 1, ['id' => $q1a->id]);
 
         $qcat2 = $qgen->create_question_category(['contextid' => $context->id]);
         $q2a = $qgen->create_question('shortanswer', null, ['category' => $qcat2->id]);     // Will be hidden.
         $q2b = $qgen->create_question('shortanswer', null, ['category' => $qcat2->id]);     // Will be hidden but used.
+        $q2c = $qgen->create_question('random', null, ['category' => $qcat2->id]);          // Will not be used.
+        $q2d = $qgen->create_question('random', null, ['category' => $qcat2->id]);          // Will be used.
         $DB->set_field('question', 'hidden', 1, ['id' => $q2a->id]);
         $DB->set_field('question', 'hidden', 1, ['id' => $q2b->id]);
         quiz_add_quiz_question($q2b->id, $quiz);
-        quiz_add_random_questions($quiz, 0, $qcat2->id, 1, false);
-
-        // We added one random question to the quiz and we expect the quiz to have only one random question.
-        $q2d = $DB->get_record_sql("SELECT q.*
-                                      FROM {question} q
-                                      JOIN {quiz_slots} s ON s.questionid = q.id
-                                     WHERE q.qtype = :qtype
-                                           AND s.quizid = :quizid",
-                array('qtype' => 'random', 'quizid' => $quiz->id), MUST_EXIST);
-
-        // The following 2 lines have to be after the quiz_add_random_questions() call above.
-        // Otherwise, quiz_add_random_questions() will to be "smart" and use them instead of creating a new "random" question.
-        $q1b = $qgen->create_question('random', null, ['category' => $qcat1->id]);          // Will not be used.
-        $q2c = $qgen->create_question('random', null, ['category' => $qcat2->id]);          // Will not be used.
+        quiz_add_quiz_question($q2d->id, $quiz);
 
         $this->assertEquals(2, $DB->count_records('question', ['category' => $qcat1->id]));
         $this->assertEquals(4, $DB->count_records('question', ['category' => $qcat2->id]));
@@ -542,6 +514,8 @@ class core_questionlib_testcase extends advanced_testcase {
         $this->assertFalse($DB->record_exists('question', ['id' => $q2c->id]));
         $this->assertTrue($DB->record_exists('question', ['id' => $q2d->id]));
     }
+<<<<<<< HEAD
+=======
 
     /**
      * get_question_options should add the category object to the given question.
@@ -2000,4 +1974,5 @@ class core_questionlib_testcase extends advanced_testcase {
         $this->assertEquals($cat1->id, $parentcategories[1]);
         $this->assertCount(2, $parentcategories);
     }
+>>>>>>> master
 }

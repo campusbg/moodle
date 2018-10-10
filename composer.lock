@@ -909,6 +909,18 @@
         },
         {
             "name": "moodlehq/behat-extension",
+<<<<<<< HEAD
+            "version": "v3.34.2",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/moodlehq/moodle-behat-extension.git",
+                "reference": "02b9f3c53dc39238e43d41f610fcffcfa76b2fa6"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/moodlehq/moodle-behat-extension/zipball/02b9f3c53dc39238e43d41f610fcffcfa76b2fa6",
+                "reference": "02b9f3c53dc39238e43d41f610fcffcfa76b2fa6",
+=======
             "version": "v3.36.0",
             "source": {
                 "type": "git",
@@ -919,6 +931,7 @@
                 "type": "zip",
                 "url": "https://api.github.com/repos/moodlehq/moodle-behat-extension/zipball/ba8c4b8b323e05f7af128604f3f3dc60c953135a",
                 "reference": "ba8c4b8b323e05f7af128604f3f3dc60c953135a",
+>>>>>>> master
                 "shasum": ""
             },
             "require": {
@@ -955,7 +968,11 @@
                 "Behat",
                 "moodle"
             ],
+<<<<<<< HEAD
+            "time": "2018-01-24T19:12:27+00:00"
+=======
             "time": "2018-02-04T18:04:02+00:00"
+>>>>>>> master
         },
         {
             "name": "myclabs/deep-copy",

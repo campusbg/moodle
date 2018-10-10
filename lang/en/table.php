@@ -24,3 +24,10 @@
 
 $string['downloadas'] = 'Download table data as';
 
+// Deprecated since Moodle 3.1.
+$string['downloadcsv'] = 'Comma separated values text file';
+$string['downloadexcel'] = 'Excel spreadsheet';
+$string['downloadods'] = 'OpenDocument spreadsheet';
+$string['downloadoptions'] = 'Select download options';
+$string['downloadtsv'] = 'Tab separated values text file';
+$string['downloadxhtml'] = 'Unpaged XHTML document';

@@ -169,7 +169,7 @@ if (empty($scorm->popup) || $displaymode == 'popup') {
         $exiturl = course_get_url($course, $cm->sectionnum);
     }
 
-    $exitlink = html_writer::link($exiturl, $strexit, array('title' => $strexit, 'class' => 'btn btn-default'));
+    $exitlink = html_writer::link($exiturl, $strexit, array('title' => $strexit));
     $PAGE->set_button($exitlink);
 }
 
@@ -284,14 +284,9 @@ if (file_exists($CFG->dirroot.'/mod/scorm/datamodels/'.$scorm->version.'.php')) 
 
 // Add the checknet system to keep checking for a connection.
 $PAGE->requires->string_for_js('networkdropped', 'mod_scorm');
-// Build arguments to send to checknet JS.
-$args = array(
+$PAGE->requires->yui_module('moodle-core-checknet', 'M.core.checknet.init', array(array(
     'message' => array('networkdropped', 'mod_scorm'),
-    'frequency' => 30000, // Frequency of network check.
-    'timeout' => 10000, // Timeout of network check.
-    'maxalerts' => 1 // Max number of alerts to be thrown.
-);
-$PAGE->requires->yui_module('moodle-core-checknet', 'M.core.checknet.init', array($args));
+)));
 echo $OUTPUT->footer();
 
 // Set the start time of this SCO.

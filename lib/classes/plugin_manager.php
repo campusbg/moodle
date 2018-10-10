@@ -1685,8 +1685,8 @@ class core_plugin_manager {
                 'backcolor', 'bold', 'charmap', 'clear', 'collapse', 'emoticon',
                 'equation', 'fontcolor', 'html', 'image', 'indent', 'italic',
                 'link', 'managefiles', 'media', 'noautolink', 'orderedlist',
-                'recordrtc', 'rtl', 'strike', 'subscript', 'superscript', 'table',
-                'title', 'underline', 'undo', 'unorderedlist'
+                'rtl', 'strike', 'subscript', 'superscript', 'table', 'title',
+                'underline', 'undo', 'unorderedlist'
             ),
 
             'assignment' => array(
@@ -1805,7 +1805,7 @@ class core_plugin_manager {
             ),
 
             'ltiservice' => array(
-                'gradebookservices', 'memberships', 'profile', 'toolproxy', 'toolsettings'
+                'memberships', 'profile', 'toolproxy', 'toolsettings'
             ),
 
             'mlbackend' => array(
@@ -1885,7 +1885,7 @@ class core_plugin_manager {
             ),
 
             'search' => array(
-                'simpledb', 'solr'
+                'solr'
             ),
 
             'scormreport' => array(
@@ -1908,8 +1908,8 @@ class core_plugin_manager {
                 'analytics', 'availabilityconditions', 'behat', 'capability', 'cohortroles', 'customlang',
                 'dataprivacy', 'dbtransfer', 'filetypes', 'generator', 'health', 'httpsreplace', 'innodb', 'installaddon',
                 'langimport', 'log', 'lp', 'lpimportcsv', 'lpmigrate', 'messageinbound', 'mobile', 'multilangupgrade',
-                'monitor', 'oauth2', 'phpunit', 'policy', 'profiling', 'recyclebin', 'replace', 'spamcleaner', 'task',
-                'templatelibrary', 'uploadcourse', 'uploaduser', 'unsuproles', 'usertours', 'xmldb'
+                'monitor', 'oauth2', 'phpunit', 'profiling', 'recyclebin', 'replace', 'spamcleaner', 'task', 'templatelibrary',
+                'uploadcourse', 'uploaduser', 'unsuproles', 'usertours', 'xmldb'
             ),
 
             'webservice' => array(

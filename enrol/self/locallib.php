@@ -25,7 +25,6 @@
 defined('MOODLE_INTERNAL') || die();
 
 require_once("$CFG->libdir/formslib.php");
-require_once($CFG->dirroot . '/enrol/locallib.php');
 
 /**
  * Check if the given password match a group enrolment key in the specified course.
@@ -104,9 +103,18 @@ class enrol_self_enrol_form extends moodleform {
         } else {
             $mform->addElement('static', 'nokey', '', get_string('nopassword', 'enrol_self'));
         }
+//echo 'a6666 '.get_string('enrolme', 'enrol_self').'
+//';
+//$var = new ReflectionFunction($this,'add_action_buttons');
+//print $var->getFileName(). ':' . $var->getStartLine();
+
 
         $this->add_action_buttons(false, get_string('enrolme', 'enrol_self'));
 
+//print_r($this->_form->_elements[2]);
+//print_r($this->_form);
+
+$mform->addElement('html', '<script language=\'JavaScript\'> function MiFuncionJS() {  alert ("Matricula exitosa3333");} </script>');
         $mform->addElement('hidden', 'id');
         $mform->setType('id', PARAM_INT);
         $mform->setDefault('id', $instance->courseid);
@@ -114,6 +122,15 @@ class enrol_self_enrol_form extends moodleform {
         $mform->addElement('hidden', 'instance');
         $mform->setType('instance', PARAM_INT);
         $mform->setDefault('instance', $instance->id);
+//print_r($mform);
+//$count = 1;
+//foreach($mform as $aaa){
+//echo '>>>>>>numero: '.$count.'
+//';
+//print_r($aaa);
+//$count=$count+1;
+//}
+
     }
 
     public function validation($data, $files) {

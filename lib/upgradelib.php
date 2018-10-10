@@ -1711,9 +1711,6 @@ function install_core($version, $verbose) {
     remove_dir($CFG->tempdir.'', true);
     make_temp_directory('', true);
 
-    remove_dir($CFG->backuptempdir.'', true);
-    make_backup_temp_directory('', true);
-
     remove_dir($CFG->dataroot.'/muc', true);
     make_writable_directory($CFG->dataroot.'/muc', true);
 

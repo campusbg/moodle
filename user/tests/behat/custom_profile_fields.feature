@@ -40,7 +40,6 @@ Feature: Custom profile fields should be visible and editable by those with the 
       | Display on signup page?       | No                    |
       | Who is this field visible to? | Visible to everyone   |
     And I click on "Save changes" "button"
-
     And I navigate to "Users > Accounts > Browse list of users" in site administration
     And I click on ".icon[title=Edit]" "css_element" in the "userwithinformation@example.com" "table_row"
     And I expand all fieldsets

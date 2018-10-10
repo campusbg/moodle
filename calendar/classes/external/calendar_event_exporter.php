@@ -93,8 +93,6 @@ class calendar_event_exporter extends event_exporter_base {
 
         $values = parent::get_other_values($output);
         $event = $this->event;
-        $course = $this->related['course'];
-        $hascourse = !empty($course);
 
         // By default all events that can be edited are
         // draggable.
@@ -111,9 +109,12 @@ class calendar_event_exporter extends event_exporter_base {
             $values['editurl'] = $editurl->out(false);
         } else if ($event->get_type() == 'category') {
             $url = $event->get_category()->get_proxied_instance()->get_view_link();
+        } else if ($event->get_type() == 'course') {
+            $url = course_get_url($event->get_course()->get('id') ?: SITEID);
         } else {
             // TODO MDL-58866 We do not have any way to find urls for events outside of course modules.
-            $url = course_get_url($hascourse ? $course : SITEID);
+            $course = $event->get_course()->get('id') ?: SITEID;
+            $url = course_get_url($course);
         }
 
         $values['url'] = $url->out(false);
@@ -164,10 +165,13 @@ class calendar_event_exporter extends event_exporter_base {
         }
 
         // Include course's shortname into the event name, if applicable.
-        if ($hascourse && $course->id !== SITEID) {
+        $course = $this->event->get_course();
+        if ($course && $course->get('id') && $course->get('id') !== SITEID) {
             $eventnameparams = (object) [
                 'name' => $values['popupname'],
-                'course' => $values['course']->shortname,
+                'course' => format_string($course->get('shortname'), true, [
+                        'context' => $this->related['context'],
+                    ])
             ];
             $values['popupname'] = get_string('eventnameandcourse', 'calendar', $eventnameparams);
         }
@@ -191,7 +195,6 @@ class calendar_event_exporter extends event_exporter_base {
         $related['daylink'] = \moodle_url::class;
         $related['type'] = '\core_calendar\type_base';
         $related['today'] = 'int';
-        $related['moduleinstance'] = 'stdClass?';
 
         return $related;
     }
@@ -218,11 +221,14 @@ class calendar_event_exporter extends event_exporter_base {
      * @return array
      */
     protected function get_module_timestamp_limits($event) {
+        global $DB;
+
         $values = [];
         $mapper = container::get_event_mapper();
         $starttime = $event->get_times()->get_start_time();
         $modname = $event->get_course_module()->get('modname');
-        $moduleinstance = $this->related['moduleinstance'];
+        $modid = $event->get_course_module()->get('instance');
+        $moduleinstance = $DB->get_record($modname, ['id' => $modid]);
 
         list($min, $max) = component_callback(
             'mod_' . $modname,

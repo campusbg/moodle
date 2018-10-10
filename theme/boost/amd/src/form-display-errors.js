@@ -37,7 +37,7 @@ define(['jquery', 'core/event'], function($, Event) {
                 if (msg !== '') {
                     parent.addClass('has-danger');
                     parent.data('client-validation-error', true);
-                    $(element).addClass('is-invalid');
+                    $(element).addClass('form-control-danger');
                     $(element).attr('aria-describedby', feedback.attr('id'));
                     $(element).attr('aria-invalid', true);
                     feedback.attr('tabindex', 0);
@@ -53,7 +53,7 @@ define(['jquery', 'core/event'], function($, Event) {
                     if (parent.data('client-validation-error') === true) {
                         parent.removeClass('has-danger');
                         parent.data('client-validation-error', false);
-                        $(element).removeClass('is-invalid');
+                        $(element).removeClass('form-control-danger');
                         $(element).removeAttr('aria-describedby');
                         $(element).attr('aria-invalid', false);
                         feedback.hide();

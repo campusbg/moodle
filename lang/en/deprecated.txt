@@ -119,6 +119,8 @@ groupaddnewnote,core_notes
 selectnotestate,core_notes
 extendenrol,core
 groupextendenrol,core
+<<<<<<< HEAD
+=======
 virusfounduser,core_antivirus
 formattexttype,core
 currentlyselectedusers,core
@@ -135,3 +137,4 @@ keepsearching,core
 allfieldsrequired,core
 previewhtml,core
 messagedselecteduserfailed,core
+>>>>>>> master

@@ -74,9 +74,8 @@ class behat_theme_boost_behat_repository_upload extends behat_repository_upload 
         $noformexception = new ExpectationException('The upload file form is not ready', $this->getSession());
         $this->find(
             'xpath',
-            "//div[contains(concat(' ', normalize-space(@class), ' '), ' container ')]" .
+            "//div[contains(concat(' ', normalize-space(@class), ' '), ' file-picker ')]" .
                 "[contains(concat(' ', normalize-space(@class), ' '), ' repository_upload ')]" .
-                "/descendant::div[contains(concat(' ', normalize-space(@class), ' '), ' file-picker ')]" .
                 "/descendant::div[contains(concat(' ', normalize-space(@class), ' '), ' fp-content ')]" .
                 "/descendant::div[contains(concat(' ', normalize-space(@class), ' '), ' fp-upload-form ')]" .
                 "/descendant::form",

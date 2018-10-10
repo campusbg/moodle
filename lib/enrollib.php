@@ -544,16 +544,17 @@ function enrol_add_course_navigation(navigation_node $coursenode, $course) {
 /**
  * Returns list of courses current $USER is enrolled in and can access
  *
- * The $fields param is a list of field names to ADD so name just the fields you really need,
- * which will be added and uniq'd.
+ * - $fields is an array of field names to ADD
+ *   so name the fields you really need, which will
+ *   be added and uniq'd
  *
  * If $allaccessible is true, this will additionally return courses that the current user is not
  * enrolled in, but can access because they are open to the user for other reasons (course view
  * permission, currently viewing course as a guest, or course allows guest access without
  * password).
  *
- * @param string|array $fields Extra fields to be returned (array or comma-separated list).
- * @param string|null $sort Comma separated list of fields to sort by, defaults to respecting navsortmycoursessort.
+ * @param string|array $fields
+ * @param string $sort
  * @param int $limit max number of courses
  * @param array $courseids the list of course ids to filter by
  * @param bool $allaccessible Include courses user is not enrolled in, but can access
@@ -562,14 +563,6 @@ function enrol_add_course_navigation(navigation_node $coursenode, $course) {
  */
 function enrol_get_my_courses($fields = null, $sort = null, $limit = 0, $courseids = [], $allaccessible = false, $offset = 0) {
     global $DB, $USER, $CFG;
-
-    if ($sort === null) {
-        if (empty($CFG->navsortmycoursessort)) {
-            $sort = 'visible DESC, sortorder ASC';
-        } else {
-            $sort = 'visible DESC, '.$CFG->navsortmycoursessort.' ASC';
-        }
-    }
 
     // Guest account does not have any enrolled courses.
     if (!$allaccessible && (isguestuser() or !isloggedin())) {
@@ -591,7 +584,7 @@ function enrol_get_my_courses($fields = null, $sort = null, $limit = 0, $coursei
     } else if (is_array($fields)) {
         $fields = array_unique(array_merge($basefields, $fields));
     } else {
-        throw new coding_exception('Invalid $fields parameter in enrol_get_my_courses()');
+        throw new coding_exception('Invalid $fileds parameter in enrol_get_my_courses()');
     }
     if (in_array('*', $fields)) {
         $fields = array('*');
@@ -795,19 +788,19 @@ function enrol_get_course_description_texts($course) {
 
 /**
  * Returns list of courses user is enrolled into.
+ * (Note: use enrol_get_all_users_courses if you want to use the list wihtout any cap checks )
  *
- * Note: Use {@link enrol_get_all_users_courses()} if you need the list without any capability checks.
+ * - $fields is an array of fieldnames to ADD
+ *   so name the fields you really need, which will
+ *   be added and uniq'd
  *
- * The $fields param is a list of field names to ADD so name just the fields you really need,
- * which will be added and uniq'd.
- *
- * @param int $userid User whose courses are returned, defaults to the current user.
- * @param bool $onlyactive Return only active enrolments in courses user may see.
- * @param string|array $fields Extra fields to be returned (array or comma-separated list).
- * @param string|null $sort Comma separated list of fields to sort by, defaults to respecting navsortmycoursessort.
+ * @param int $userid
+ * @param bool $onlyactive return only active enrolments in courses user may see
+ * @param string|array $fields
+ * @param string $sort
  * @return array
  */
-function enrol_get_users_courses($userid, $onlyactive = false, $fields = null, $sort = null) {
+function enrol_get_users_courses($userid, $onlyactive = false, $fields = NULL, $sort = 'visible DESC,sortorder ASC') {
     global $DB;
 
     $courses = enrol_get_all_users_courses($userid, $onlyactive, $fields, $sort);
@@ -884,27 +877,19 @@ function enrol_user_sees_own_courses($user = null) {
 }
 
 /**
- * Returns list of courses user is enrolled into without performing any capability checks.
+ * Returns list of courses user is enrolled into without any capability checks
+ * - $fields is an array of fieldnames to ADD
+ *   so name the fields you really need, which will
+ *   be added and uniq'd
  *
- * The $fields param is a list of field names to ADD so name just the fields you really need,
- * which will be added and uniq'd.
- *
- * @param int $userid User whose courses are returned, defaults to the current user.
- * @param bool $onlyactive Return only active enrolments in courses user may see.
- * @param string|array $fields Extra fields to be returned (array or comma-separated list).
- * @param string|null $sort Comma separated list of fields to sort by, defaults to respecting navsortmycoursessort.
+ * @param int $userid
+ * @param bool $onlyactive return only active enrolments in courses user may see
+ * @param string|array $fields
+ * @param string $sort
  * @return array
  */
-function enrol_get_all_users_courses($userid, $onlyactive = false, $fields = null, $sort = null) {
-    global $CFG, $DB;
-
-    if ($sort === null) {
-        if (empty($CFG->navsortmycoursessort)) {
-            $sort = 'visible DESC, sortorder ASC';
-        } else {
-            $sort = 'visible DESC, '.$CFG->navsortmycoursessort.' ASC';
-        }
-    }
+function enrol_get_all_users_courses($userid, $onlyactive = false, $fields = NULL, $sort = 'visible DESC,sortorder ASC') {
+    global $DB;
 
     // Guest account does not have any courses
     if (isguestuser($userid) or empty($userid)) {
@@ -927,7 +912,7 @@ function enrol_get_all_users_courses($userid, $onlyactive = false, $fields = nul
     } else if (is_array($fields)) {
         $fields = array_unique(array_merge($basefields, $fields));
     } else {
-        throw new coding_exception('Invalid $fields parameter in enrol_get_all_users_courses()');
+        throw new coding_exception('Invalid $fileds parameter in enrol_get_my_courses()');
     }
     if (in_array('*', $fields)) {
         $fields = array('*');
@@ -2014,6 +1999,21 @@ abstract class enrol_plugin {
     }
 
     /**
+     * Confirm user accept politicians of course
+     */
+    public function accept_politician_course($courseid, $userid) {
+        
+        debug("si llega a la funcion");
+        global $DB;
+        //echo (new \DateTime())->format('Y-m-d H:i:s');  
+        echo '<script>alert("asdasd")</script>';
+        $sql='insert into politicas_curso (courseid, userid,fechapolitica,politician) 
+        VALUES('.$courseid.','.$userid.',DATE(\''.(new \DateTime())->format('Y-m-d H:i:s').'\'),1)';
+        $DB->execute($sql);
+        return;
+    }
+    
+    /**
      * Unenrol user from course,
      * the last unenrolment removes all remaining roles.
      *
@@ -2263,7 +2263,7 @@ abstract class enrol_plugin {
      * @return void
      */
     public function course_edit_form($instance, MoodleQuickForm $mform, $data, $context) {
-        // override - usually at least enable/disable switch, has to add own form header
+        // override - usually at least enable/disable switch, has to add own form Fer
     }
 
     /**

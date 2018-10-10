@@ -106,7 +106,6 @@ class search_base_testcase extends advanced_testcase {
 
         // Construct the search document.
         $rec = new \stdClass();
-        $rec->contextid = 1;
         $area = new core_mocksearch\search\mock_search_area();
         $record = $this->generator->create_record($rec);
         $document = $area->get_document($record);

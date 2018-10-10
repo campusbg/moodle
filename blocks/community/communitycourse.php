@@ -75,8 +75,7 @@ $cancelrestore = optional_param('cancelrestore', false, PARAM_INT);
 if ($usercandownload and $cancelrestore and confirm_sesskey()) {
     $filename = optional_param('filename', '', PARAM_ALPHANUMEXT);
     //delete temp file
-    $backuptempdir = make_backup_temp_directory('');
-    unlink($backuptempdir . '/' . $filename . ".mbz");
+    unlink($CFG->tempdir . '/backup/' . $filename . ".mbz");
 }
 
 /// Download

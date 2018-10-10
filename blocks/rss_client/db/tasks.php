@@ -37,3 +37,4 @@ $tasks = array(
     )
 );
 
+//>>>>>>> master:blocks/rss_client/db/tasks.php

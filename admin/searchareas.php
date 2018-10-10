@@ -52,7 +52,6 @@ if ($action) {
 
         // All of these actions require that indexing is enabled.
         if ($indexingenabled) {
-
             // For all of these actions, we strictly need a manager instance.
             if (isset($searchmanagererror)) {
                 throw $searchmanagererror;
@@ -111,7 +110,6 @@ if ($action) {
     } else if (in_array($action, ['enable', 'disable'])) {
         // Toggling search areas requires no confirmation.
         require_sesskey();
-
         switch ($action) {
             case 'enable':
                 $area->set_enabled(true);
@@ -186,17 +184,7 @@ foreach ($searchareas as $area) {
                 $laststatus = '';
             }
             $columns[] = $laststatus;
-            $accesshide = html_writer::span($area->get_visible_name(), 'accesshide');
-            $actions = [];
-            $actions[] = $OUTPUT->pix_icon('t/delete', '') .
-                    html_writer::link(admin_searcharea_action_url('delete', $areaid),
-                    get_string('deleteindex', 'search', $accesshide));
-            if ($area->supports_get_document_recordset()) {
-                $actions[] = $OUTPUT->pix_icon('i/reload', '') . html_writer::link(
-                        new moodle_url('searchreindex.php', ['areaid' => $areaid]),
-                        get_string('gradualreindex', 'search', $accesshide));
-            }
-            $columns[] = html_writer::alist($actions, ['class' => 'unstyled list-unstyled']);
+            $columns[] = html_writer::link(admin_searcharea_action_url('delete', $areaid), 'Delete index');
 
         } else {
             if (!$areasconfig) {
@@ -236,7 +224,6 @@ if (isset($searchmanager)) {
     $searchrenderer = $PAGE->get_renderer('core_search');
     echo $searchrenderer->render_index_requests_info($searchmanager->get_index_requests_info());
 }
-
 echo $OUTPUT->footer();
 
 /**
@@ -247,12 +234,9 @@ echo $OUTPUT->footer();
  * @return moodle_url
  */
 function admin_searcharea_action_url($action, $areaid = false) {
-    $params = array('action' => $action);
+    $params = array('action' => $action, 'sesskey' => sesskey());
     if ($areaid) {
         $params['areaid'] = $areaid;
-    }
-    if ($action === 'disable' || $action === 'enable') {
-        $params['sesskey'] = sesskey();
     }
     return new moodle_url('/admin/searchareas.php', $params);
 }

@@ -147,7 +147,7 @@ class enrol_self_plugin extends enrol_plugin {
         if ($instance->password && !isset($data->enrolpassword)) {
             return;
         }
-
+//echo 'holaaaa111';
         $timestart = time();
         if ($instance->enrolperiod) {
             $timeend = $timestart + $instance->enrolperiod;
@@ -191,16 +191,21 @@ class enrol_self_plugin extends enrol_plugin {
         require_once("$CFG->dirroot/enrol/self/locallib.php");
 
         $enrolstatus = $this->can_self_enrol($instance);
-
+//echo '<script language=\'JavaScript\'> function MiFuncionJS() {  alert ("Matricula exitosa1111");} </script>';
         if (true === $enrolstatus) {
             // This user can self enrol using this instance.
             $form = new enrol_self_enrol_form(null, $instance);
+//print_r($form);
             $instanceid = optional_param('instance', 0, PARAM_INT);
             if ($instance->id == $instanceid) {
                 if ($data = $form->get_data()) {
+                    echo '<script language=\'JavaScript\'>  alert ("Matricula exitosa1111") </script>';
+                    //sleep(30);
+                    //funcion para matricular estudiante y enviar correo
                     $this->enrol_self($instance, $data);
                 }
             }
+
         } else {
             // This user can not self enrol using this instance. Using an empty form to keep
             // the UI consistent with other enrolment plugins that returns a form.
@@ -216,7 +221,9 @@ class enrol_self_plugin extends enrol_plugin {
 
         ob_start();
         $form->display();
+//print_r($form);
         $output = ob_get_clean();
+//echo 'prueba '.$OUTPUT->box($output);
         return $OUTPUT->box($output);
     }
 
@@ -284,6 +291,33 @@ class enrol_self_plugin extends enrol_plugin {
             }
         }
 
+$sql = 'select COUNT(*) as n from modl_user_enrolments m, modl_enrol e, modl_course c
+WHERE c.id=e.courseid and e.id = m.enrolid and c.id = '.$instance->courseid.' group by m.enrolid';
+$numeroparti = $DB->get_records_sql($sql);
+
+if(empty($numeroparti)){
+	$numeroparti=0;
+}else{
+foreach($numeroparti as $aux){
+$n= $aux->n;
+}
+//echo 'N: '.$n;
+}
+$sql = 'select quote from modl_course where id= '.$instance->courseid;
+$quote = $DB->get_records_sql($sql);
+
+$sentencia = 'CALL sp_verificar_cupos('.$instance->courseid.')';
+//$asd =$DB->execute($sentencia);
+	if($quote<=$n){
+            return get_string('canntenrol', 'enrol_self');
+	}
+	//if(!empty($asd)){
+		//echo 'funciona el sp '.$asd;
+		//if($asd){
+			//echo 'true';
+		//}
+		//return get_string('canntenrol', 'enrol_self');
+	//}
         return true;
     }
 
@@ -397,12 +431,23 @@ class enrol_self_plugin extends enrol_plugin {
         }
 
         $subject = get_string('welcometocourse', 'enrol_self', format_string($course->fullname, true, array('context'=>$context)));
-
+echo 'esto es una prueba de que funciona el netbeans';
         $sendoption = $instance->customint4;
         $contact = $this->get_welcome_email_contact($sendoption, $context);
+echo '<script language=\'JavaScript\'> alert ("Matricula exitosa2222"); </script>';
 
         // Directly emailing welcome message rather than using messaging.
         email_to_user($user, $contact, $subject, $messagetext, $messagehtml);
+    }
+
+    /**
+     * Enrol self cron support.
+     * @return void
+     */
+    public function cron() {
+        $trace = new text_progress_trace();
+        $this->sync($trace, null);
+        $this->send_expiry_notifications($trace);
     }
 
     /**
@@ -682,25 +727,6 @@ class enrol_self_plugin extends enrol_plugin {
                          14 * 3600 * 24 => get_string('numdays', '', 14),
                          7 * 3600 * 24 => get_string('numdays', '', 7));
         return $options;
-    }
-
-    /**
-     * The self enrollment plugin has several bulk operations that can be performed.
-     * @param course_enrolment_manager $manager
-     * @return array
-     */
-    public function get_bulk_operations(course_enrolment_manager $manager) {
-        global $CFG;
-        require_once($CFG->dirroot.'/enrol/self/locallib.php');
-        $context = $manager->get_context();
-        $bulkoperations = array();
-        if (has_capability("enrol/self:manage", $context)) {
-            $bulkoperations['editselectedusers'] = new enrol_self_editselectedusers_operation($manager, $this);
-        }
-        if (has_capability("enrol/self:unenrol", $context)) {
-            $bulkoperations['deleteselectedusers'] = new enrol_self_deleteselectedusers_operation($manager, $this);
-        }
-        return $bulkoperations;
     }
 
     /**

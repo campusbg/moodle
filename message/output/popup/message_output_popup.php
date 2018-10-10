@@ -35,12 +35,7 @@ require_once($CFG->dirroot.'/message/output/lib.php');
 class message_output_popup extends message_output {
 
     /**
-     * Adds notifications to the 'message_popup_notifications' table if applicable.
-     *
-     * The reason for this is because we may not want to show all notifications in the notification popover. This
-     * can happen if the popup processor was disabled when the notification was sent. If the processor is disabled this
-     * function is never called so the notification will never be added to the 'message_popup_notifications' table.
-     * Essentially this table is used to filter what notifications to display from the 'notifications' table.
+     * Do nothing on send_message.
      *
      * @param object $eventdata the event data submitted by the message sender plus $eventdata->savedmessageid
      * @return true if ok, false if error
@@ -48,13 +43,30 @@ class message_output_popup extends message_output {
     public function send_message($eventdata) {
         global $DB;
 
-        // Prevent users from getting popup notifications from themselves (happens with forum notifications).
-        if ($eventdata->userfrom->id != $eventdata->userto->id && $eventdata->notification) {
-            if (!$DB->record_exists('message_popup_notifications', ['notificationid' => $eventdata->savedmessageid])) {
-                $record = new stdClass();
-                $record->notificationid = $eventdata->savedmessageid;
+        //hold onto the popup processor id because /admin/cron.php sends a lot of messages at once
+        static $processorid = null;
 
-                $DB->insert_record('message_popup_notifications', $record);
+        //prevent users from getting popup notifications of messages to themselves (happens with forum notifications)
+        if ($eventdata->userfrom->id != $eventdata->userto->id) {
+            if (empty($processorid)) {
+                $processor = $DB->get_record('message_processors', array('name'=>'popup'));
+                $processorid = $processor->id;
+            }
+            $procmessage = new stdClass();
+            $procmessage->unreadmessageid = $eventdata->savedmessageid;
+            $procmessage->processorid     = $processorid;
+
+            //save this message for later delivery
+            $DB->insert_record('message_working', $procmessage);
+
+            if ($eventdata->notification) {
+                if (!$DB->record_exists('message_popup', ['messageid' => $eventdata->savedmessageid, 'isread' => 0])) {
+                    $record = new StdClass();
+                    $record->messageid = $eventdata->savedmessageid;
+                    $record->isread = 0;
+
+                    $DB->insert_record('message_popup', $record);
+                }
             }
         }
 
@@ -99,6 +111,22 @@ class message_output_popup extends message_output {
      */
     public function has_message_preferences() {
         return false;
+    }
+
+    /**
+     * Handles the message_viewed event to keep data in sync.
+     *
+     * @param \core\event\base $event The event data
+     */
+    public static function message_viewed(\core\event\base $event) {
+        global $DB;
+
+        if ($record = $DB->get_record('message_popup', ['messageid' => $event->other['messageid']])) {
+            // The id can change when the moving to the message_read table.
+            $record->messageid = $event->objectid;
+            $record->isread = 1;
+            $DB->update_record('message_popup', $record);
+        }
     }
 
     /**

@@ -208,31 +208,20 @@ class renderer_base {
      * If will then be rendered by a method based upon the classname for the widget.
      * For instance a widget of class `crazywidget` will be rendered by a protected
      * render_crazywidget method of this renderer.
-     * If no render_crazywidget method exists and crazywidget implements templatable,
-     * look for the 'crazywidget' template in the same component and render that.
      *
      * @param renderable $widget instance with renderable interface
      * @return string
      */
     public function render(renderable $widget) {
-        $classparts = explode('\\', get_class($widget));
+        $classname = get_class($widget);
         // Strip namespaces.
-        $classname = array_pop($classparts);
+        $classname = preg_replace('/^.*\\\/', '', $classname);
         // Remove _renderable suffixes
         $classname = preg_replace('/_renderable$/', '', $classname);
 
         $rendermethod = 'render_'.$classname;
         if (method_exists($this, $rendermethod)) {
             return $this->$rendermethod($widget);
-        }
-        if ($widget instanceof templatable) {
-            $component = array_shift($classparts);
-            if (!$component) {
-                $component = 'core';
-            }
-            $template = $component . '/' . $classname;
-            $context = $widget->export_for_template($this);
-            return $this->render_from_template($template, $context);
         }
         throw new coding_exception('Can not render widget, renderer method ('.$rendermethod.') not found.');
     }
@@ -1935,8 +1924,10 @@ class core_renderer extends renderer_base {
             $continue->primary = true;
         } else if (is_string($continue)) {
             $continue = new single_button(new moodle_url($continue), get_string('continue'), 'post', true);
+            //$continue = new single_button(new moodle_url($continue), get_string('accept11'), 'post', true);
         } else if ($continue instanceof moodle_url) {
-            $continue = new single_button($continue, get_string('continue'), 'post', true);
+            //$continue = new single_button($continue, get_string('continue'), 'post', true);
+            $continue = new single_button($continue, 'Aceptar', 'post', true);
         } else {
             throw new coding_exception('The continue param to $OUTPUT->confirm() must be either a URL (string/moodle_url) or a single_button instance.');
         }
@@ -2689,7 +2680,7 @@ class core_renderer extends renderer_base {
 <div class="filemanager-loading mdl-align" id='filepicker-loading-{$client_id}'>
 $icon_progress
 </div>
-<div id="filepicker-wrapper-{$client_id}" class="mdl-left w-100" style="display:none">
+<div id="filepicker-wrapper-{$client_id}" class="mdl-left" style="display:none">
     <div>
         <input type="button" class="btn btn-secondary fp-btn-choose" id="filepicker-button-{$client_id}" value="{$straddfile}"{$buttonname}/>
         <span> $maxsize </span>
@@ -2837,7 +2828,7 @@ EOD;
             $message .= '<p class="errormessage">' . get_string('installproblem', 'error') . '</p>';
             //It is usually not possible to recover from errors triggered during installation, you may need to create a new database or use a different database prefix for new installation.
         }
-        $output .= $this->box($message, 'errorbox alert alert-danger', null, array('data-rel' => 'fatalerror'));
+        $output .= $this->box($message, 'errorbox', null, array('data-rel' => 'fatalerror'));
 
         if ($CFG->debugdeveloper) {
             if (!empty($debuginfo)) {
@@ -2930,35 +2921,71 @@ EOD;
     }
 
     /**
+     * Output a notification at a particular level - in this case, NOTIFY_PROBLEM.
+     *
+     * @param string $message the message to print out
+     * @return string HTML fragment.
      * @deprecated since Moodle 3.1 MDL-30811 - please do not use this function any more.
+     * @todo MDL-53113 This will be removed in Moodle 3.5.
+     * @see \core\output\notification
      */
-    public function notify_problem() {
-        throw new coding_exception('core_renderer::notify_problem() can not be used any more, '.
-            'please use \core\notification::add(), or \core\output\notification as required.');
+    public function notify_problem($message) {
+        debugging(__FUNCTION__ . ' is deprecated.' .
+            'Please use \core\notification::add, or \core\output\notification as required',
+            DEBUG_DEVELOPER);
+        $n = new \core\output\notification($message, \core\output\notification::NOTIFY_ERROR);
+        return $this->render($n);
     }
 
     /**
+     * Output a notification at a particular level - in this case, NOTIFY_SUCCESS.
+     *
+     * @param string $message the message to print out
+     * @return string HTML fragment.
      * @deprecated since Moodle 3.1 MDL-30811 - please do not use this function any more.
+     * @todo MDL-53113 This will be removed in Moodle 3.5.
+     * @see \core\output\notification
      */
-    public function notify_success() {
-        throw new coding_exception('core_renderer::notify_success() can not be used any more, '.
-            'please use \core\notification::add(), or \core\output\notification as required.');
+    public function notify_success($message) {
+        debugging(__FUNCTION__ . ' is deprecated.' .
+            'Please use \core\notification::add, or \core\output\notification as required',
+            DEBUG_DEVELOPER);
+        $n = new \core\output\notification($message, \core\output\notification::NOTIFY_SUCCESS);
+        return $this->render($n);
     }
 
     /**
+     * Output a notification at a particular level - in this case, NOTIFY_MESSAGE.
+     *
+     * @param string $message the message to print out
+     * @return string HTML fragment.
      * @deprecated since Moodle 3.1 MDL-30811 - please do not use this function any more.
+     * @todo MDL-53113 This will be removed in Moodle 3.5.
+     * @see \core\output\notification
      */
-    public function notify_message() {
-        throw new coding_exception('core_renderer::notify_message() can not be used any more, '.
-            'please use \core\notification::add(), or \core\output\notification as required.');
+    public function notify_message($message) {
+        debugging(__FUNCTION__ . ' is deprecated.' .
+            'Please use \core\notification::add, or \core\output\notification as required',
+            DEBUG_DEVELOPER);
+        $n = new \core\output\notification($message, \core\output\notification::NOTIFY_INFO);
+        return $this->render($n);
     }
 
     /**
+     * Output a notification at a particular level - in this case, NOTIFY_REDIRECT.
+     *
+     * @param string $message the message to print out
+     * @return string HTML fragment.
      * @deprecated since Moodle 3.1 MDL-30811 - please do not use this function any more.
+     * @todo MDL-53113 This will be removed in Moodle 3.5.
+     * @see \core\output\notification
      */
-    public function notify_redirect() {
-        throw new coding_exception('core_renderer::notify_redirect() can not be used any more, '.
-            'please use \core\notification::add(), or \core\output\notification as required.');
+    public function notify_redirect($message) {
+        debugging(__FUNCTION__ . ' is deprecated.' .
+            'Please use \core\notification::add, or \core\output\notification as required',
+            DEBUG_DEVELOPER);
+        $n = new \core\output\notification($message, \core\output\notification::NOTIFY_INFO);
+        return $this->render($n);
     }
 
     /**
@@ -3071,6 +3098,15 @@ EOD;
         return html_writer::tag('h' . $level, $text, array('id' => $id, 'class' => renderer_base::prepare_classes($classes)));
     }
 
+    public function emailU($text, $level = 2, $classes = null, $id = null) {
+        $level = (integer) $level;
+        if ($level < 1 or $level > 6) {
+            throw new coding_exception('Heading level must be an integer between 1 and 6.');
+        }
+        return html_writer::tag('h' . $level, $text, array('id' => $id, 'class' => renderer_base::prepare_classes($classes)));
+    }
+
+
     /**
      * Outputs a box.
      *
@@ -3130,7 +3166,7 @@ EOD;
     public function container_start($classes = null, $id = null) {
         $this->opencontainers->push('container', html_writer::end_tag('div'));
         return html_writer::start_tag('div', array('id' => $id,
-                'class' => renderer_base::prepare_classes($classes)));
+                'class' => renderer_base::prepare_classes($classes), 'style' => ''));
     }
 
     /**
@@ -3237,10 +3273,6 @@ EOD;
 
         $contents = html_writer::tag('label', get_string('enteryoursearchquery', 'search'),
             array('for' => 'id_q_' . $id, 'class' => 'accesshide')) . html_writer::tag('input', '', $inputattrs);
-        if ($this->page->context && $this->page->context->contextlevel !== CONTEXT_SYSTEM) {
-            $contents .= html_writer::empty_tag('input', ['type' => 'hidden',
-                    'name' => 'context', 'value' => $this->page->context->id]);
-        }
         $searchinput = html_writer::tag('form', $contents, $formattrs);
 
         return html_writer::tag('div', $searchicon . $searchinput, array('class' => 'search-input-wrapper nav-link', 'id' => $id));
@@ -3392,7 +3424,7 @@ EOD;
         }
 
         $returnstr .= html_writer::span(
-            html_writer::span($usertextcontents, 'usertext mr-1') .
+            html_writer::span($usertextcontents, 'usertext') .
             html_writer::span($avatarcontents, $avatarclasses),
             'userbutton'
         );
@@ -4218,7 +4250,7 @@ EOD;
         }
 
         $contextheader = new context_header($heading, $headinglevel, $imagedata, $userbuttons);
-        return $this->render_context_header($contextheader);
+        return $this->render_context_header($contextheader, $user->email);
     }
 
     /**
@@ -4243,7 +4275,7 @@ EOD;
       * @param context_header $contextheader Header bar object.
       * @return string HTML for the header bar.
       */
-    protected function render_context_header(context_header $contextheader) {
+    protected function render_context_header(context_header $contextheader, $email) {
 
         // All the html stuff goes here.
         $html = html_writer::start_div('page-context-header');
@@ -4262,7 +4294,19 @@ EOD;
         }
 
         $html .= html_writer::tag('div', $headings, array('class' => 'page-header-headings'));
+	// emailU
+	// Headings.
+        if (!isset($contextheader->heading)) {
+            $emailuser = $this->emailU($email, $contextheader->headinglevel);
+        } else {
+            $emailuser = $this->emailU($email, $contextheader->headinglevel);
+        }
 
+
+        $html .= html_writer::tag('div', $emailuser , array('class' => 'page-header-headings', 'style' => 'margin-left: 10px;'));
+        //$html .= html_writer::start_tag('div', array('style' => 'float: right;'));
+ 	//$html .= html_writer::tag('h3',strftime("%A, %d de %B de %Y"), array('style' => 'float: right;'));
+        //$html .= html_writer::end_tag('div');
         // Buttons.
         if (isset($contextheader->additionalbuttons)) {
             $html .= html_writer::start_div('btn-group header-button-group');
@@ -4912,7 +4956,8 @@ class core_renderer_maintenance extends core_renderer {
         }
 
         $output = $this->box_start('generalbox', 'notice');
-        $output .= html_writer::tag('h4', get_string('confirm'));
+        //$output .= html_writer::tag('h4', get_string('confirm'));
+        $output .= html_writer::tag('h4', 'Aceptar');
         $output .= html_writer::tag('p', $message);
         $output .= html_writer::tag('div', $this->render($continue) . $this->render($cancel), array('class' => 'buttons'));
         $output .= $this->box_end();

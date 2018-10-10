@@ -92,6 +92,7 @@ class page_agreedocs implements renderable, templatable {
         $this->action = $action;
         $this->isexistinguser = isloggedin() && !isguestuser();
 
+        $this->isexistinguser = isloggedin() && !isguestuser();
         $behalfid = $behalfid ?: $USER->id;
         if ($realuser->id != $behalfid) {
             $this->behalfuser = core_user::get_user($behalfid, '*', MUST_EXIST);

@@ -790,13 +790,13 @@ EOD;
 
         if ($record['archetype']) {
 
-            // We copy all the roles the archetype can assign, override, switch to and view.
+            // We copy all the roles the archetype can assign, override and switch to.
             if ($record['archetype']) {
-                $types = array('assign', 'override', 'switch', 'view');
+                $types = array('assign', 'override', 'switch');
                 foreach ($types as $type) {
                     $rolestocopy = get_default_role_archetype_allows($type, $record['archetype']);
                     foreach ($rolestocopy as $tocopy) {
-                        $functionname = "core_role_set_{$type}_allowed";
+                        $functionname = 'allow_' . $type;
                         $functionname($newroleid, $tocopy);
                     }
                 }

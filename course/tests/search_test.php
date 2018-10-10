@@ -43,17 +43,11 @@ class course_search_testcase extends advanced_testcase {
      */
     protected $mycoursesareaid = null;
 
-    /**
-     * @var string Area id for sections
-     */
-    protected $sectionareaid = null;
-
     public function setUp() {
         $this->resetAfterTest(true);
         set_config('enableglobalsearch', true);
 
         $this->mycoursesareaid = \core_search\manager::generate_areaid('core_course', 'mycourse');
-        $this->sectionareaid = \core_search\manager::generate_areaid('core_course', 'section');
 
         // Set \core_search::instance to the mock_search_engine as we don't require the search engine to be working to test this.
         $search = testable_core_search::instance();

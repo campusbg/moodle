@@ -120,13 +120,12 @@ class course_edit_form extends moodleform {
                 $mform->setConstant('visible', $courseconfig->visible);
             }
         }
-        $mform->addElement('date_time_selector', 'startdate', get_string('startdate'));
-        $mform->addHelpButton('startdate', 'startdate');
-        $date = (new DateTime())->setTimestamp(usergetmidnight(time()));
-        $date->modify('+1 day');
-        $mform->setDefault('startdate', $date->getTimestamp());
 
-        $mform->addElement('date_time_selector', 'enddate', get_string('enddate'), array('optional' => true));
+        $mform->addElement('date_selector', 'startdate', get_string('startdate'));
+        $mform->addHelpButton('startdate', 'startdate');
+        $mform->setDefault('startdate', time() + 3600 * 24);
+
+        $mform->addElement('date_selector', 'enddate', get_string('enddate'), array('optional' => true));
         $mform->addHelpButton('enddate', 'enddate');
 
         $mform->addElement('text','idnumber', get_string('idnumbercourse'),'maxlength="100"  size="10"');
@@ -136,6 +135,23 @@ class course_edit_form extends moodleform {
             $mform->hardFreeze('idnumber');
             $mform->setConstants('idnumber', $course->idnumber);
         }
+
+        // Imagen de fondo.
+        //$mform->addElement('header', 'imgback', 'Imagen de fondo');
+        //$mform->setExpanded('imgback');
+
+        //$mform->addElement('advcheckbox', 'checkimgback', 'Imagen de fondo', 'Usar la imagen por defecto. Valor por defecto: Si', array('optional' => true));
+        //if ($overviewfilesoptions = course_overviewfiles_options($course)) {
+            //$mform->addElement('filemanager', 'files_filemanager', 'Cargue la imagen como marca de agua', null, $overviewfilesoptions);
+            //$mform->addHelpButton('files_filemanager', 'courseoverviewimg_background');
+            //$summaryfields .= ',files_filemanager';
+        //}
+
+        //if (!empty($course->id) and !has_capability('moodle/course:changesummary', $coursecontext)) {
+            // Remove the description header it does not contain anything any more.
+            //$mform->removeElement('imgback');
+            //$mform->hardFreeze($summaryfields);
+        //}
 
         // Description.
         $mform->addElement('header', 'descriptionhdr', get_string('description'));
@@ -205,11 +221,8 @@ class course_edit_form extends moodleform {
         $languages=array();
         $languages[''] = get_string('forceno');
         $languages += get_string_manager()->get_list_of_translations();
-        if ((empty($course->id) && guess_if_creator_will_have_course_capability('moodle/course:setforcedlanguage', $categorycontext))
-                || (!empty($course->id) && has_capability('moodle/course:setforcedlanguage', $coursecontext))) {
-            $mform->addElement('select', 'lang', get_string('forcelanguage'), $languages);
-            $mform->setDefault('lang', $courseconfig->lang);
-        }
+        $mform->addElement('select', 'lang', get_string('forcelanguage'), $languages);
+        $mform->setDefault('lang', $courseconfig->lang);
 
         // Multi-Calendar Support - see MDL-18375.
         $calendartypes = \core_calendar\type_factory::get_list_of_calendar_types();
@@ -275,6 +288,15 @@ class course_edit_form extends moodleform {
             $mform->setDefault('enablecompletion', 0);
         }
 
+	//Cupos para estudiantes
+        $mform->addElement('header', 'cupo', 'Cupos');
+        $mform->setExpanded('cupo');
+	$mform->addElement('text', 'quote', 'Numero de cupos para el curso', 'maxlength="100" size="20"');
+
+        $mform->addElement('header', 'politica', 'Politicas');
+        $mform->setExpanded('politica');        
+        $mform->addElement('checkbox', 'politician', 'Opción para aceptar politicas del curso');
+        
         enrol_course_edit_form($mform, $course, $context);
 
         $mform->addElement('header','groups', get_string('groupsettingsheader', 'group'));
@@ -299,6 +321,8 @@ class course_edit_form extends moodleform {
         if ((empty($course->id) && guess_if_creator_will_have_course_capability('moodle/course:renameroles', $categorycontext))
                 || (!empty($course->id) && has_capability('moodle/course:renameroles', $coursecontext))) {
             // Customizable role names in this course.
+
+	    //cabecera de rol
             $mform->addElement('header', 'rolerenaming', get_string('rolerenaming'));
             $mform->addHelpButton('rolerenaming', 'rolerenaming');
 
@@ -312,6 +336,8 @@ class course_edit_form extends moodleform {
             }
         }
 
+	
+	//marcas
         if (core_tag_tag::is_enabled('core', 'course') &&
                 ((empty($course->id) && guess_if_creator_will_have_course_capability('moodle/course:tag', $categorycontext))
                 || (!empty($course->id) && has_capability('moodle/course:tag', $coursecontext)))) {
@@ -328,10 +354,11 @@ class course_edit_form extends moodleform {
         }
         $buttonarray[] = &$mform->createElement('submit', 'saveanddisplay', get_string('savechangesanddisplay'), $classarray);
         $buttonarray[] = &$mform->createElement('cancel');
+
         $mform->addGroup($buttonarray, 'buttonar', '', array(' '), false);
         $mform->closeHeaderBefore('buttonar');
 
-        $mform->addElement('hidden', 'id', null);
+        $mform->addElement('hidden', 'id',  null);
         $mform->setType('id', PARAM_INT);
 
         // Finally set the current form data

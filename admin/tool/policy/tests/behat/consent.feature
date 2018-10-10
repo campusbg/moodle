@@ -419,7 +419,11 @@ Feature: User must accept policy managed by this plugin when logging in and sign
     And I log out
     # Create new version of the policy document.
     And I log in as "admin"
+<<<<<<< HEAD
+    And I navigate to "Manage policies" node in "Site administration > Users > Privacy and policies"
+=======
     And I navigate to "Users > Privacy and policies > Manage policies" in site administration
+>>>>>>> master
     When I follow "Actions"
     Then I should see "View"
     And I should see "Edit"
@@ -663,6 +667,8 @@ Feature: User must accept policy managed by this plugin when logging in and sign
     And I follow "Policies and agreements"
     And "Agreed" "icon" should exist in the "This site policy" "table_row"
     And I log out
+<<<<<<< HEAD
+=======
 
   Scenario: Accepting policies on sign up, multiple policies with different style of giving ageement.
     Given the following config values are set as admin:
@@ -877,3 +883,4 @@ Feature: User must accept policy managed by this plugin when logging in and sign
     And "Privacy policy" "table_row" should not exist
     And "Terms of Service" "table_row" should not exist
     And I log out
+>>>>>>> master
